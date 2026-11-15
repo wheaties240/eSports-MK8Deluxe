@@ -216,7 +216,7 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <input type="date" id="batch-date" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <input type="date" id="batch-date" onclick="this.showPicker && this.showPicker()" style="color-scheme: dark;" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white cursor-pointer">
             <input list="course-list" id="batch-course" placeholder="Track / Course..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
             <select id="batch-type" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
               <option value="Official">Official Match</option>
