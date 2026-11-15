@@ -755,7 +755,7 @@
         const courses = {};
         pLogs.forEach(r => { if (!courses[r]) courses[r] = { c: 0, s: 0 }; courses[r].c++; courses[r].s += Number(r); });
         const best = Object.entries(courses).map(([k, v]) => ({ k, c: v.c, avg: v.s / v.c })).sort((a, b) => (a.c >= 3 ? 0 : 1) - (b.c >= 3 ? 0 : 1) || a.avg - b.avg);
-        return { races: pLogs.length, avg: fmtAvg(sum, pLogs.length), best: best ? `${best.k} (${best.avg.toFixed(1)}${best.c < 3 ? '*' : ''})` : 'N/A' };
+return { races: pLogs.length, avg: fmtAvg(sum, pLogs.length), best: best[0] ? `${best[0].k} (${best[0].avg.toFixed(1)}${best[0].c < 3 ? '*' : ''})` : 'N/A' };
       };
 
       const getTopTracksForLineup = (rosterNames) => {
