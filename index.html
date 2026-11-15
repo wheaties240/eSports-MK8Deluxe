@@ -56,9 +56,9 @@
         </div>
 
         <label class="block text-sm font-medium text-slate-300 mb-1">Match Type</label>
-        <div class="grid grid-cols-2 gap-2 mb-4">
-          <button type="button" id="btn-type-official" onclick="setMatchType('Official')" class="py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500">🏆 Official Match</button>
-          <button type="button" id="btn-type-practice" onclick="setMatchType('Practice')" class="py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700">⏱️ Practice / Scrim</button>
+        <div class="grid grid-cols-2 gap-2 mb-4">          
+          <button type="button" id="btn-type-official" onclick="setMatchType('Official')" class="py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500">Official Match</button>
+          <button type="button" id="btn-type-practice" onclick="setMatchType('Practice')" class="py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700">Practice</button>
         </div>
 
         <label class="block text-sm font-medium text-slate-300 mb-1">1. Select Your Name</label>
@@ -120,9 +120,9 @@
                 <option value="ALL">All Squads (Whole Program)</option>
               </select>
               <select id="filter-match-type" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
-                <option value="Official">🏆 Official Matches Only</option>
-                <option value="Practice">⏱️ Practice / Scrimmage Only</option>
-                <option value="ALL">📊 All Races Combined</option>
+                 <option value="Official">Official Matches Only</option>
+                <option value="Practice">Practice Only</option>
+                <option value="ALL">All Races Combined</option>
               </select>
             </div>
             <button id="btn-squad-card" onclick="openSquadCard()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold text-white shadow">📋 Best-of-3 Match Playbook</button>
