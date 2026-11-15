@@ -207,6 +207,33 @@
             </table>
           </div>
         </div>
+        
+        <!-- Coach Batch Race Logger -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+          <div>
+            <h3 class="font-bold text-lg text-white">Batch Log Race Results (Up to 4 Racers)</h3>
+            <p class="text-xs text-slate-400">Select a date, course, and squad/racers to log all 4 placements at once. Automatically merges with any existing student entries from that date and course.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <input type="date" id="batch-date" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <input list="course-list" id="batch-course" placeholder="Track / Course..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <select id="batch-squad-preset" onchange="loadBatchSquadPreset()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+              <option value="">-- Quick-Fill Squad --</option>
+            </select>
+            <select id="batch-type" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+              <option value="Official">Official Match</option>
+              <option value="Practice">Practice</option>
+            </select>
+          </div>
+
+          <div id="batch-racer-rows" class="space-y-2"></div>
+
+          <div class="flex items-center justify-between pt-1">
+            <p id="batch-status" class="text-xs text-emerald-400 hidden"></p>
+            <button onclick="submitBatchRace()" id="btn-batch-submit" class="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Save Race Batch</button>
+          </div>
+        </div>
 
         <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
           <div class="p-4 border-b border-slate-700 flex justify-between items-center">
