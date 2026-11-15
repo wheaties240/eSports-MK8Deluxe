@@ -363,51 +363,59 @@
       const sel = document.getElementById('select-player');
       sel.innerHTML = '<option value="">-- Choose Racer --</option>';
       const squads = new Set(["Nighthawk Shellshockers", "Squid Squad"]);
+      const players = Array.isArray(appConfig.players) ? appConfig.players : [];
 
-      appConfig.players.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+      players.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.name;
-        opt.textContent = `${p.name} (${p.team})`;
-        opt.dataset.team = p.team;
+        opt.textContent = `${p.name} (${p.team || 'Unassigned'})`;
+        opt.dataset.team = p.team || 'Unassigned';
         sel.appendChild(opt);
         if (p.team) squads.add(p.team);
       });
-    }
+
       updateSquadDropdowns(squads);
-    renderRosterManager();
-    buildBatchPlayerList();
+      renderRosterManager();
+      buildBatchPlayerList();
+    }
+
     let batchSelections = {};
 
     function buildBatchPlayerList() {
       const container = document.getElementById('batch-player-list');
       if (!container) return;
       batchSelections = {};
-      const sortedPlayers = [...appConfig.players].sort((a, b) => a.name.localeCompare(b.name));
+      const players = Array.isArray(appConfig.players) ? [...appConfig.players] : [];
+      players.sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
-      if (sortedPlayers.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-400">No players loaded in roster yet.</p>';
+      if (players.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400">No active players found in your Google Sheet Players tab.</p>';
         return;
       }
 
-      container.innerHTML = sortedPlayers.map((p, idx) => `
-        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
-          <label class="flex items-center justify-between cursor-pointer select-none">
-            <span class="flex items-center gap-2 text-sm font-bold text-white">
-              <input type="checkbox" id="batch-chk-${idx}" onchange="toggleBatchPlayer(${idx}, '${p.name.replace(/'/g, "\\'")}', '${(p.team || 'Unassigned').replace(/'/g, "\\'")}')" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600">
-              ${p.name}
-            </span>
-            <span class="text-[11px] text-slate-400">${p.team || 'Unassigned'}</span>
-          </label>
-          <div id="batch-places-${idx}" class="hidden grid grid-cols-8 gap-1 pt-1">
-            ${Array.from({ length: 8 }, (_, n) => n + 1).map(num => `
-              <button type="button" id="batch-btn-${idx}-${num}" onclick="setBatchPlace(${idx}, ${num})"
-                class="py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400">
-                ${num}
-              </button>
-            `).join('')}
+      container.innerHTML = players.map((p, idx) => {
+        const safeName = String(p.name || '').replace(/'/g, "\\'");
+        const safeTeam = String(p.team || 'Unassigned').replace(/'/g, "\\'");
+        return `
+          <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
+            <label class="flex items-center justify-between cursor-pointer select-none">
+              <span class="flex items-center gap-2 text-sm font-bold text-white">
+                <input type="checkbox" id="batch-chk-${idx}" onchange="toggleBatchPlayer(${idx}, '${safeName}', '${safeTeam}')" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600">
+                ${p.name}
+              </span>
+              <span class="text-[11px] text-slate-400">${p.team || 'Unassigned'}</span>
+            </label>
+            <div id="batch-places-${idx}" class="hidden grid grid-cols-8 gap-1 pt-1">
+              ${Array.from({ length: 8 }, (_, n) => n + 1).map(num => `
+                <button type="button" id="batch-btn-${idx}-${num}" onclick="setBatchPlace(${idx}, ${num})"
+                  class="py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400">
+                  ${num}
+                </button>
+              `).join('')}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function toggleBatchPlayer(idx, playerName, teamName) {
