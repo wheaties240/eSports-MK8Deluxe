@@ -229,7 +229,7 @@
           <button onclick="closeModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white">✕ Close</button>
         </div>
       </div>
-
+      
       <div id="lineup-builder-controls" class="hidden bg-slate-900/80 px-5 py-4 border-b border-slate-700 no-print space-y-3">
         <div class="flex justify-between items-center">
           <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Customize Game-by-Game Lineups (Select up to 4 per Game)</h4>
@@ -240,6 +240,227 @@
 
       <div id="print-area" class="p-6 bg-slate-800 text-slate-100 space-y-6"></div>
     </div>
+      <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const API_URL = urlParams.get('api') || 'https://script.google.com/macros/s/AKfycbwfm6toGNAdg7IY3jTR38bfFPb9W9erbWSHoNoUsZIObLlVbRyOF_IAxx1KRzHa9qatgQ/exec';
+
+    const COURSES = [
+      "Mario Kart Stadium", "Water Park", "Sweet Sweet Canyon", "Thwomp Ruins",
+      "Mario Circuit", "Toad Harbor", "Twisted Mansion", "Shy Guy Falls",
+      "Sunshine Airport", "Dolphin Shoals", "Electrodrome", "Mount Wario",
+      "Cloudtop Cruise", "Bone-Dry Dunes", "Bowser's Castle", "Rainbow Road",
+      "Moo Moo Meadows", "Mario Circuit (GBA)", "Cheep Cheep Beach", "Toad's Turnpike",
+      "Dry Dry Desert", "Donut Plains 3", "Royal Raceway", "DK Jungle",
+      "Wario Stadium", "Sherbet Land", "Music Park", "Yoshi Valley",
+      "Tick-Tock Clock", "Piranha Plant Slide", "Grumble Volcano", "Rainbow Road (N64)",
+      "Yoshi Circuit", "Excitebike Arena", "Dragon Driftway", "Mute City",
+      "Wario's Gold Mine", "Rainbow Road (SNES)", "Ice Ice Outpost", "Hyrule Circuit",
+      "Baby Park", "Cheese Land", "Wild Woods", "Animal Crossing",
+      "Neo Bowser City", "Ribbon Road", "Super Bell Subway", "Big Blue",
+      "Paris Promenade", "Toad Circuit", "Choco Mountain", "Coconut Mall",
+      "Tokyo Blur", "Shroom Ridge", "Sky Garden", "Ninja Hideaway",
+      "New York Minute", "Mario Circuit 3", "Kalimari Desert", "Waluigi Pinball",
+      "Sydney Sprint", "Snow Land", "Mushroom Gorge", "Sky-High Sundae",
+      "London Loop", "Boo Lake", "Rock Rock Mountain", "Maple Treeway",
+      "Berlin Byways", "Peach Gardens", "Merry Mountain", "Rainbow Road (3DS)",
+      "Amsterdam Drift", "Riverside Park", "DK Summit", "Yoshi's Island",
+      "Bangkok Rush", "Mario Circuit (DS)", "Waluigi Stadium", "Singapore Speedway",
+      "Athens Dash", "Daisy Cruiser", "Moonview Highway", "Squeaky Clean Sprint",
+      "Los Angeles Laps", "Sunset Wilds", "Koopa Cape", "Vancouver Velocity",
+      "Rome Avanti", "DK Mountain", "Daisy Circuit", "Piranha Plant Cove",
+      "Madrid Drive", "Rosalina's Ice World", "Bowser Castle 3", "Rainbow Road (Wii)"
+    ];
+
+    let appConfig = { players: [], teamCode: '', coachPin: '' };
+    let allLogs = [];
+    let selectedPlace = null;
+    let currentMatchType = 'Official';
+    let verifiedCoachPin = '';
+    let sessionReceipts = [];
+    let currentCardTitle = 'stat-card';
+    let gameLineups = { g1: [], g2: [], g3: [] };
+
+    function getFormattedDate() {
+      return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    window.onload = async () => {
+      populateCourses();
+      buildPlaceGrid();
+      try {
+        const res = await fetch(`${API_URL}?action=init`);
+        appConfig = await res.json();
+        populatePlayersAndSquads();
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('view-student').classList.remove('hidden');
+
+        if (localStorage.getItem('mk_team_code') === appConfig.teamCode) {
+          showStudentForm();
+        }
+      } catch (err) {
+        document.getElementById('loading').innerHTML = `<p class="text-rose-400">Error connecting to Google Sheet. Check your API_URL.</p>`;
+      }
+    };
+    function setMatchType(type) {
+      currentMatchType = type;
+      const btnOff = document.getElementById('btn-type-official');
+      const btnPrac = document.getElementById('btn-type-practice');
+      if (type === 'Official') {
+        btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500';
+        btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
+      } else {
+        btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-amber-600 text-white border border-amber-500';
+        btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
+      }
+    }
+
+    function populateCourses() {
+      const dl = document.getElementById('course-list');
+      COURSES.sort().forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        dl.appendChild(opt);
+      });
+    }
+
+    function populatePlayersAndSquads() {
+      const sel = document.getElementById('select-player');
+      sel.innerHTML = '<option value="">-- Choose Racer --</option>';
+      const squads = new Set(["Nighthawk Shellshockers", "Squid Squad"]);
+
+      appConfig.players.sort((a, b) => a.name.localeCompare(b.name)).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = `${p.name} (${p.team})`;
+        opt.dataset.team = p.team;
+        sel.appendChild(opt);
+        if (p.team) squads.add(p.team);
+      });
+
+      updateSquadDropdowns(squads);
+      renderRosterManager();
+    }
+
+    function updateSquadDropdowns(squadSet) {
+      const dl = document.getElementById('squad-list');
+      const filter = document.getElementById('filter-squad');
+      const currentFilter = filter.value;
+
+      dl.innerHTML = '';
+      filter.innerHTML = '<option value="ALL">All Squads (Whole Program)</option>';
+
+      Array.from(squadSet).sort().forEach(s => {
+        const opt1 = document.createElement('option');
+        opt1.value = s;
+        dl.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = s;
+        opt2.textContent = s;
+        filter.appendChild(opt2);
+      });
+      filter.value = currentFilter || 'ALL';
+    }
+
+    function autoSelectSquad() {
+      const sel = document.getElementById('select-player');
+      const selectedOpt = sel.options[sel.selectedIndex];
+      if (selectedOpt && selectedOpt.dataset.team) {
+        document.getElementById('input-student-squad').value = selectedOpt.dataset.team;
+      }
+    }
+
+    function buildPlaceGrid() {
+      const grid = document.getElementById('place-grid');
+      for (let i = 1; i <= 8; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = i;
+        btn.className = 'place-btn py-2.5 rounded-lg bg-slate-900 border border-slate-600 font-bold hover:border-indigo-400 transition';
+        btn.onclick = () => {
+          selectedPlace = i;
+          document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
+          btn.classList.add('bg-indigo-600', 'border-indigo-500');
+        };
+        grid.appendChild(btn);
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-student').classList.toggle('hidden', tab !== 'student');
+      document.getElementById('view-coach').classList.toggle('hidden', tab !== 'coach');
+      document.getElementById('nav-student').className = tab === 'student' ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300';
+      document.getElementById('nav-coach').className = tab === 'coach' ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300';
+    }
+
+    function unlockStudent() {
+      const entered = document.getElementById('input-team-code').value.trim();
+      if (entered.toLowerCase() === appConfig.teamCode.toLowerCase()) {
+        localStorage.setItem('mk_team_code', appConfig.teamCode);
+        showStudentForm();
+      } else {
+        document.getElementById('gate-error').classList.remove('hidden');
+      }
+    }
+
+    function showStudentForm() {
+      document.getElementById('student-gate').classList.add('hidden');
+      document.getElementById('student-form').classList.remove('hidden');
+    }
+
+    async function submitRace() {
+      const player = document.getElementById('select-player').value;
+      const team = document.getElementById('input-student-squad').value.trim() || 'Unassigned';
+      const course = document.getElementById('input-course').value.trim();
+      const status = document.getElementById('submit-status');
+      const btn = document.getElementById('btn-submit-race');
+
+      if (!player || !course || !selectedPlace) {
+        status.textContent = "Please select your name, course, and placement.";
+        status.className = "text-center text-sm mt-3 text-rose-400";
+        status.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'logRace',
+            teamCode: appConfig.teamCode,
+            player, team, course,
+            place: selectedPlace,
+            matchType: currentMatchType
+          })
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          status.textContent = `Saved: ${player} finished #${selectedPlace} on ${course}!`;
+          status.className = "text-center text-sm mt-3 text-emerald-400 font-medium";
+          status.classList.remove('hidden');
+
+          sessionReceipts.push({ player, course, place: selectedPlace, matchType: currentMatchType });
+          renderReceipts();
+
+          document.getElementById('input-course').value = '';
+          selectedPlace = null;
+          document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
+        } else {
+          status.textContent = "Authorization error. Check Team Code.";
+          status.className = "text-center text-sm mt-3 text-rose-400";
+          status.classList.remove('hidden');
+        }
+      } catch (e) {
+        status.textContent = "Error saving race. Please try again.";
+        status.className = "text-center text-sm mt-3 text-rose-400";
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Submit Race";
+    }
   </div>
     function renderReceipts() {
       const card = document.getElementById('session-receipt-card');
