@@ -648,54 +648,105 @@
       document.getElementById('bench-sub').textContent = `${bCount} total races logged`;
     }
 
-    function openPlayerCard(playerName) {
+        function openPlayerCard(playerName) {
       document.getElementById('lineup-builder-controls').classList.add('hidden');
       const matchType = document.getElementById('filter-match-type').value;
       const dateStamp = getFormattedDate();
-      const pLogs = allLogs.filter(r => r === playerName && (matchType === 'ALL' || String(r || 'Official').trim() === matchType));
+      const pLogs = allLogs.filter(([time, player, course, place, pts, team, mType]) => {
+        const rowType = String(mType || 'Official').trim();
+        return player === playerName && (matchType === 'ALL' || rowType === matchType);
+      });
+
       const rosterInfo = appConfig.players.find(p => p.name === playerName) || { team: 'Unassigned', role: 'Starter' };
-      const sumPlace = pLogs.reduce((acc, r) => acc + Number(r), 0);
-      const totalPts = pLogs.reduce((acc, r) => acc + Number(r), 0);
+      const sumPlace = pLogs.reduce((acc, [time, player, course, place]) => acc + Number(place), 0);
+      const totalPts = pLogs.reduce((acc, [time, player, course, place, pts]) => acc + Number(pts), 0);
 
       const trackMap = {};
-      pLogs.forEach(([t, p, course, place]) => {
+      pLogs.forEach(([time, player, course, place]) => {
         if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0 };
-        trackMap[course].count++; trackMap[course].sum += Number(place);
+        trackMap[course].count++;
+        trackMap[course].sum += Number(place);
       });
 
       const sortedTracks = Object.entries(trackMap).map(([course, d]) => ({
-        course, count: d.count, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
+        course,
+        count: d.count,
+        avgNum: d.sum / d.count,
+        avgDisplay: fmtAvg(d.sum, d.count)
       })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
+      const topTrackName = sortedTracks.at(0) ? sortedTracks.at(0).course : 'N/A';
       currentCardTitle = `${playerName.replace(/\s+/g, '_')}_Stats_${dateStamp.replace(/[\s,]+/g, '_')}`;
+
       document.getElementById('print-area').innerHTML = `
-        <div class="border-b border-slate-700 pb-4 flex justify-between items-start print-light">
-          <div>
-            <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Player Performance Report (${matchType})</span>
-            <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${playerName}</h2>
-            <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
+        <div class="w-full space-y-6">
+          <div class="border-b border-slate-700 pb-4 flex justify-between items-start print-light">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Player Performance Report (${matchType})</span>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span>
+              </div>
+              <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${playerName}</h2>
+              <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
+            </div>
+            <div class="text-right">
+              <div class="text-xs text-slate-400 print-text-muted">Season Avg Place</div>
+              <div class="text-3xl font-black text-emerald-400">${fmtAvg(sumPlace, pLogs.length)}</div>
+            </div>
           </div>
-          <div class="text-right"><div class="text-xs text-slate-400 print-text-muted">Season Avg Place</div><div class="text-3xl font-black text-emerald-400">${fmtAvg(sumPlace, pLogs.length)}</div></div>
+
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
+              <div class="text-xs text-slate-400 print-text-muted">Races Played</div>
+              <div class="text-xl font-bold text-white print-text-dark">${pLogs.length}</div>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
+              <div class="text-xs text-slate-400 print-text-muted">Total Points</div>
+              <div class="text-xl font-bold text-white print-text-dark">${totalPts}</div>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
+              <div class="text-xs text-slate-400 print-text-muted">Top Track</div>
+              <div class="text-sm font-bold text-indigo-400 mt-1 leading-snug">${topTrackName}</div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Individual Track Rankings</h4>
+            <table class="w-full text-left text-xs border border-slate-700 rounded-lg overflow-hidden">
+              <thead class="bg-slate-900 text-slate-400 print-light">
+                <tr><th class="p-2">Course</th><th class="p-2">Races</th><th class="p-2">Avg Place</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700">
+                ${sortedTracks.map(t => `
+                  <tr>
+                    <td class="p-2 font-medium text-white print-text-dark">${t.course}</td>
+                    <td class="p-2 text-slate-300 print-text-muted">${t.count}</td>
+                    <td class="p-2 font-bold text-emerald-400">${t.avgDisplay}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Recent Race Log (Last 12)</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              ${pLogs.slice(-12).reverse().map(([time, player, course, place]) => `
+                <div class="bg-slate-900 px-3 py-2 rounded border border-slate-700 flex justify-between items-center gap-2 print-light">
+                  <span class="text-slate-200 print-text-dark leading-snug">${course}</span>
+                  <span class="font-bold text-indigo-400 shrink-0">#${place}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-400 print-text-muted">* Fewer than 3 races logged on track.</p>
         </div>
-        <div class="grid grid-cols-3 gap-3 text-center">
-          <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Races Played</div><div class="text-xl font-bold text-white print-text-dark">${pLogs.length}</div></div>
-          <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Total Points</div><div class="text-xl font-bold text-white print-text-dark">${totalPts}</div></div>
-          <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Top Track</div><div class="text-sm font-bold text-indigo-400 mt-1 leading-snug">${sortedTracks ? sortedTracks.course : 'N/A'}</div></div>
-        </div>
-        <div>
-          <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Individual Track Rankings</h4>
-          <table class="w-full text-left text-xs border border-slate-700 rounded-lg overflow-hidden">
-            <thead class="bg-slate-900 text-slate-400 print-light"><tr><th class="p-2">Course</th><th class="p-2">Races</th><th class="p-2">Avg Place</th></tr></thead>
-            <tbody class="divide-y divide-slate-700">${sortedTracks.map(t => `<tr><td class="p-2 font-medium text-white print-text-dark">${t.course}</td><td class="p-2 text-slate-300 print-text-muted">${t.count}</td><td class="p-2 font-bold text-emerald-400">${t.avgDisplay}</td></tr>`).join('')}</tbody>
-          </table>
-        </div>
-        <div>
-          <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Recent Race Log (Last 12)</h4>
-          <div class="grid grid-cols-2 gap-2 text-xs">${pLogs.slice(-12).reverse().map(r => `<div class="bg-slate-900 px-3 py-2 rounded border border-slate-700 flex justify-between items-center gap-2 print-light"><span class="text-slate-200 print-text-dark leading-snug">${r}</span><span class="font-bold text-indigo-400 shrink-0">#${r}</span></div>`).join('')}</div>
-        </div>
-        <p class="text-[11px] text-slate-400 print-text-muted">* Asterisk indicates fewer than 3 races logged on that track (small sample size).</p>`;
+      `;
+
       document.getElementById('card-modal').classList.remove('hidden');
     }
+
     function openSquadCard() {
       const squadName = document.getElementById('filter-squad').value;
       const squadPlayers = appConfig.players.filter(p => p.team === squadName);
