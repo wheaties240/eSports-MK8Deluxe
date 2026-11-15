@@ -399,11 +399,11 @@
     }
 
     function switchTab(tab) {
-      document.getElementById('view-student').classList.toggle('hidden', tab !== 'student');
-      document.getElementById('view-coach').classList.toggle('hidden', tab !== 'coach');
-      document.getElementById('nav-student').className = tab === 'student' ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300';
-      document.getElementById('nav-coach').className = tab === 'coach' ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-700 text-slate-300';
-    }
+       document.getElementById('view-student').classList.toggle('hidden', tab !== 'student');
+       document.getElementById('view-coach').classList.toggle('hidden', tab !== 'coach');
+       document.getElementById('nav-student').className = tab === 'student' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
+       document.getElementById('nav-coach').className = tab === 'coach' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
+     }
 
     function unlockStudent() {
       const entered = document.getElementById('input-team-code').value.trim();
