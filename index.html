@@ -105,7 +105,7 @@
       <div id="coach-gate" class="max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
         <h2 class="text-xl font-bold mb-2">Coach Dashboard Login</h2>
         <p class="text-slate-400 text-sm mb-4">Enter your Coach PIN to view team stats and manage roster.</p>
-        <input type="password" id="input-coach-pin" placeholder="Enter PIN" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
+        <input type="password" inputmode="numeric" pattern="[0-9]*" id="input-coach-pin" placeholder="Enter PIN" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
         <button onclick="unlockCoach()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white transition">View Analytics</button>
         <p id="pin-error" class="text-rose-400 text-sm mt-2 hidden">Invalid PIN.</p>
       </div>
