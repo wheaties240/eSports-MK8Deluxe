@@ -211,27 +211,24 @@
         <!-- Coach Batch Race Logger -->
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
           <div>
-            <h3 class="font-bold text-lg text-white">Batch Log Race Results (Up to 4 Racers)</h3>
-            <p class="text-xs text-slate-400">Select a date, course, and squad/racers to log all 4 placements at once. Automatically merges with any existing student entries from that date and course.</p>
+            <h3 class="font-bold text-lg text-white">Batch Log Race Results</h3>
+            <p class="text-xs text-slate-400">Select a date, course, and check the racers who played to enter their 1–8 placements at once.</p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <input type="date" id="batch-date" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
             <input list="course-list" id="batch-course" placeholder="Track / Course..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-            <select id="batch-squad-preset" onchange="loadBatchSquadPreset()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-              <option value="">-- Quick-Fill Squad --</option>
-            </select>
             <select id="batch-type" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
               <option value="Official">Official Match</option>
               <option value="Practice">Practice</option>
             </select>
           </div>
 
-          <div id="batch-racer-rows" class="space-y-2"></div>
+          <div id="batch-player-list" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
 
           <div class="flex items-center justify-between pt-1">
             <p id="batch-status" class="text-xs text-emerald-400 hidden"></p>
-            <button onclick="submitBatchRace()" id="btn-batch-submit" class="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Save Race Batch</button>
+            <button type="button" onclick="submitBatchRace()" id="btn-batch-submit" class="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Save Race Batch</button>
           </div>
         </div>
 
@@ -378,7 +375,117 @@
 
       updateSquadDropdowns(squads);
     renderRosterManager();
-buildBatchRows();
+    buildBatchPlayerList();
+    let batchSelections = {};
+
+    function buildBatchPlayerList() {
+      const container = document.getElementById('batch-player-list');
+      if (!container) return;
+      batchSelections = {};
+      const sortedPlayers = [...appConfig.players].sort((a, b) => a.name.localeCompare(b.name));
+
+      if (sortedPlayers.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400">No players loaded in roster yet.</p>';
+        return;
+      }
+
+      container.innerHTML = sortedPlayers.map((p, idx) => `
+        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
+          <label class="flex items-center justify-between cursor-pointer select-none">
+            <span class="flex items-center gap-2 text-sm font-bold text-white">
+              <input type="checkbox" id="batch-chk-${idx}" onchange="toggleBatchPlayer(${idx}, '${p.name.replace(/'/g, "\\'")}', '${(p.team || 'Unassigned').replace(/'/g, "\\'")}')" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600">
+              ${p.name}
+            </span>
+            <span class="text-[11px] text-slate-400">${p.team || 'Unassigned'}</span>
+          </label>
+          <div id="batch-places-${idx}" class="hidden grid grid-cols-8 gap-1 pt-1">
+            ${Array.from({ length: 8 }, (_, n) => n + 1).map(num => `
+              <button type="button" id="batch-btn-${idx}-${num}" onclick="setBatchPlace(${idx}, ${num})"
+                class="py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400">
+                ${num}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleBatchPlayer(idx, playerName, teamName) {
+      const checked = document.getElementById(`batch-chk-${idx}`).checked;
+      const placeRow = document.getElementById(`batch-places-${idx}`);
+      if (checked) {
+        batchSelections[idx] = { player: playerName, team: teamName, place: null };
+        placeRow.classList.remove('hidden');
+      } else {
+        delete batchSelections[idx];
+        placeRow.classList.add('hidden');
+        setBatchPlace(idx, null);
+      }
+    }
+
+    function setBatchPlace(idx, placeNum) {
+      if (batchSelections[idx]) {
+        batchSelections[idx].place = placeNum;
+      }
+      Array.from({ length: 8 }, (_, i) => i + 1).forEach(n => {
+        const btn = document.getElementById(`batch-btn-${idx}-${n}`);
+        if (btn) {
+          btn.className = n === placeNum
+            ? 'py-1.5 rounded bg-indigo-600 border border-indigo-400 text-xs font-bold text-white'
+            : 'py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400';
+        }
+      });
+    }
+
+    async function submitBatchRace() {
+      const customDate = document.getElementById('batch-date').value;
+      const course = document.getElementById('batch-course').value.trim();
+      const matchType = document.getElementById('batch-type').value;
+      const status = document.getElementById('batch-status');
+      const btn = document.getElementById('btn-batch-submit');
+
+      const entries = Object.values(batchSelections)
+        .filter(item => item && item.place)
+        .map(item => ({
+          player: item.player,
+          team: item.team,
+          course,
+          place: item.place,
+          matchType
+        }));
+
+      if (!customDate || !course || entries.length === 0) {
+        status.textContent = "Select a date, course, and check at least one racer with a 1–8 placement.";
+        status.className = "text-xs text-rose-400";
+        status.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Saving Batch...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'logRace', teamCode: appConfig.teamCode, customDate, entries })
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          status.textContent = `Saved ${entries.length} placements for ${course} (${customDate})!`;
+          status.className = "text-xs text-emerald-400 font-medium";
+          status.classList.remove('hidden');
+          document.getElementById('batch-course').value = '';
+          buildBatchPlayerList();
+          await loadDashboard();
+        }
+      } catch (e) {
+        status.textContent = "Error saving race batch.";
+        status.className = "text-xs text-rose-400";
+        status.classList.remove('hidden');
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Save Race Batch";
     }
 
     function updateSquadDropdowns(squadSet) {
