@@ -6,15 +6,26 @@
   <title>Mario Kart eSports Tracker</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
+   <style>
     @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      #print-area {
-        position: absolute; left: 0; top: 0; width: 100%;
-        background: white !important; color: black !important; padding: 16px !important;
+      nav, main, .no-print { display: none !important; }
+      #card-modal {
+        position: static !important;
+        background: white !important;
+        padding: 0 !important;
+        overflow: visible !important;
       }
-      .no-print { display: none !important; }
+      #card-modal > div {
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      #print-area {
+        background: white !important;
+        color: black !important;
+        padding: 8px !important;
+      }
       .print-light { background: #f8fafc !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
       .print-text-dark { color: #0f172a !important; }
       .print-text-muted { color: #475569 !important; }
