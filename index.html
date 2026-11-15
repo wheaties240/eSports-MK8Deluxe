@@ -765,7 +765,7 @@
         return {
           races: pLogs.length,
           avg: fmtAvg(sum, pLogs.length),
-       best: best.at(0) ? `${best.at(0).k} (${best.at(0).avg.toFixed(1)}${best.at(0).c < 3 ? '*' : ''})` : 'N/A'
+       best: best ? `${best.k} (${best.avg.toFixed(1)}${best.c < 3 ? '*' : ''})` : 'N/A'
         };
      };
 
