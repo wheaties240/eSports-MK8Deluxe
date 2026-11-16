@@ -939,11 +939,13 @@ function renderTables() {
   const squadBtn = document.getElementById('btn-squad-card');
   const sbPanel = document.getElementById('starter-bench-panel');
 
+ sbPanel.classList.remove('hidden');
+  updateStarterBenchPanel(selectedSquad, filteredLogs);
+
   if (selectedSquad !== 'ALL') {
-    squadBtn.classList.remove('hidden'); sbPanel.classList.remove('hidden');
-    updateStarterBenchPanel(selectedSquad, filteredLogs);
+    squadBtn.classList.remove('hidden');
   } else {
-    squadBtn.classList.add('hidden'); sbPanel.classList.add('hidden');
+    squadBtn.classList.add('hidden');
   }
 
   const playerStats = {}, courseStats = {}, styleStats = {};
@@ -1037,13 +1039,21 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
 }
 
 function updateStarterBenchPanel(squadName, logs) {
-  const starters = appConfig.players.filter(p => p.team === squadName && p.role === 'Starter').map(p => p.name);
-  const bench = appConfig.players.filter(p => p.team === squadName && p.role === 'Bench').map(p => p.name);
+  const starters = appConfig.players
+    .filter(p => (squadName === 'ALL' || p.team === squadName) && p.role === 'Starter')
+    .map(p => p.name);
+  const bench = appConfig.players
+    .filter(p => (squadName === 'ALL' || p.team === squadName) && p.role === 'Bench')
+    .map(p => p.name);
+
   let sSum = 0, sCount = 0, bSum = 0, bCount = 0;
-  logs.forEach(([t, player, c, place]) => {
-    if (starters.includes(player)) { sSum += Number(place); sCount++; }
-    if (bench.includes(player)) { bSum += Number(place); bCount++; }
+  logs.forEach(r => {
+    const player = r.at(1);
+    const place = Number(r.at(3));
+    if (starters.includes(player)) { sSum += place; sCount++; }
+    if (bench.includes(player)) { bSum += place; bCount++; }
   });
+
   document.getElementById('starter-count').textContent = `${starters.length} Assigned`;
   document.getElementById('starter-avg').textContent = fmtAvg(sSum, sCount);
   document.getElementById('starter-sub').textContent = `${sCount} total races logged`;
