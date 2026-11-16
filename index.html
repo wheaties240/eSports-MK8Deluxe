@@ -476,8 +476,8 @@ function populatePlayersAndSquads() {
   players.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.name;
-    opt.textContent = `${p.name} (${p.team || 'Unassigned'})`;
-    opt.dataset.team = p.team
+    opt.textContent = p.name;
+    opt.dataset.team = p.team || 'Unassigned';
     sel.appendChild(opt);
     if (p.team) squads.add(p.team);
   });
