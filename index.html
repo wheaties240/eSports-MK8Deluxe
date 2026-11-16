@@ -907,7 +907,7 @@ async function loadStats() {
   const data = await res.json();
   allLogs = getChronologicalLogs(data.logs || []);
   const allSquads = new Set(["Nighthawk Shellshockers", "Squid Squad", ...appConfig.players.map(p => p.team)]);
-  allLogs.forEach(r => { if (r) allSquads.add(String(r).trim()); });
+  allLogs.forEach(r => { if (r.at(5)) allSquads.add(String(r.at(5)).trim()); });
   updateSquadDropdowns(allSquads);
   renderSquadDivisionSettings(allSquads);
   renderTables();
@@ -918,9 +918,9 @@ function getFilteredLogs() {
   const selectedType = document.getElementById('filter-match-type').value;
   const selectedDiv = document.getElementById('filter-division').value;
   return allLogs.filter(r => {
-    const rowTeam = String(r || 'Unassigned').trim();
-    const rowType = String(r || 'Official').trim();
-    const rowDiv = String(r || getTeamDivision(rowTeam)).trim();
+    const rowTeam = String(r.at(5) || 'Unassigned').trim();
+    const rowType = String(r.at(6) || 'Official').trim();
+    const rowDiv = String(r.at(7) || getTeamDivision(rowTeam)).trim();
     return (selectedSquad === 'ALL' || rowTeam === selectedSquad) &&
            (selectedType === 'ALL' || rowType === selectedType) &&
            (selectedDiv === 'ALL' || rowDiv === selectedDiv);
@@ -1065,8 +1065,8 @@ function openPlayerCard(playerName) {
   });
 
   const rosterInfo = appConfig.players.find(p => p.name === playerName) || { team: 'Unassigned', role: 'Starter' };
-  const sumPlace = pLogs.reduce((acc, r) => acc + Number(r), 0);
-  const totalPts = pLogs.reduce((acc, r) => acc + Number(r), 0);
+  const sumPlace = pLogs.reduce((acc, r) => acc + Number(r.at(3)), 0);
+  const totalPts = pLogs.reduce((acc, r) => acc + Number(r.at(4)), 0);
   const trend = calculatePlayerTrend(pLogs);
 
   const trackMap = {};
@@ -1079,7 +1079,7 @@ function openPlayerCard(playerName) {
     course, count: d.count, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
   })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
-  const topTrackName = sortedTracks ? sortedTracks.course : 'N/A';
+  const topTrackName = sortedTracks.at(0) ? sortedTracks.at(0).course : 'N/A';
   currentCardTitle = `${playerName.replace(/\s+/g, '_')}_Stats_${dateStamp.replace(/[\s,]+/g, '_')}`;
 
   document.getElementById('print-area').innerHTML = `
@@ -1125,32 +1125,14 @@ function openPlayerCard(playerName) {
     </div>`;
   document.getElementById('card-modal').classList.remove('hidden');
 }
-function openSquadCard() {
-  const squadName = document.getElementById('filter-squad').value;
-  const squadPlayers = appConfig.players.filter(p => p.team === squadName);
-  const starters = squadPlayers.filter(p => p.role === 'Starter').map(p => p.name);
-  const bench = squadPlayers.filter(p => p.role === 'Bench').map(p => p.name);
-
-  gameLineups.g1 = starters.slice(0, 4);
-  if (gameLineups.g1.length === 0) gameLineups.g1 = squadPlayers.slice(0, 4).map(p => p.name);
-  const g2Default = [...bench];
-  for (const s of starters) { if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s); }
-  gameLineups.g2 = g2Default.slice(0, 4);
-  gameLineups.g3 = [...gameLineups.g1];
-
-  renderInFormSuggestions(squadPlayers);
-  renderLineupBuilderControls(squadPlayers);
-  renderSquadPlaybook();
-  document.getElementById('card-modal').classList.remove('hidden');
-}
 
 function renderInFormSuggestions(squadPlayers) {
   const box = document.getElementById('in-form-suggestions');
   const logs = getFilteredLogs();
   const scored = squadPlayers.map(p => {
-    const pLogs = logs.filter(r => r === p.name);
+    const pLogs = logs.filter(r => r.at(1) === p.name);
     const recent = pLogs.slice(-12);
-    const recentAvg = recent.length ? recent.reduce((a, r) => a + Number(r), 0) / recent.length : 99;
+    const recentAvg = recent.length ? recent.reduce((a, r) => a + Number(r.at(3)), 0) / recent.length : 99;
     const trend = calculatePlayerTrend(pLogs);
     return { name: p.name, role: p.role, recentAvg, count: recent.length, badgeHTML: trend.badgeHTML };
   }).filter(x => x.count > 0).sort((a, b) => a.recentAvg - b.recentAvg);
@@ -1300,25 +1282,25 @@ function renderRawDataTable() {
   const tbody = document.getElementById('raw-data-body');
   const query = (document.getElementById('raw-search').value || '').toLowerCase();
   const rows = [...allLogs].reverse().filter(r => {
-    const dStr = r[0] ? new Date(r[0]).toISOString().slice(0, 10) : '';
-    return !query || `${dStr} ${r[1]} ${r[2]} ${r[6]} ${r[7]}`.toLowerCase().includes(query);
+    const dStr = r.at(0) ? new Date(r.at(0)).toISOString().slice(0, 10) : '';
+    return !query || `${dStr} ${r.at(1)} ${r.at(2)} ${r.at(5)} ${r.at(7)}`.toLowerCase().includes(query);
   }).slice(0, 80);
 
   tbody.innerHTML = '';
   rows.forEach(r => {
-    const dStr = r[0] ? new Date(r[0]).toISOString().slice(0, 10) : '';
-    const rowNum = r[8];
+    const dStr = r.at(0) ? new Date(r.at(0)).toISOString().slice(0, 10) : '';
+    const rowNum = r.at(8);
     const tr = document.createElement('tr');
     tr.className = 'hover:bg-slate-700/30';
     tr.innerHTML = `
       <td class="p-2"><input type="date" value="${dStr}" id="raw-d-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white"></td>
-      <td class="p-2"><input type="text" value="${r[1]}" id="raw-p-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-28"></td>
-      <td class="p-2"><input list="course-list" value="${r[2]}" id="raw-c-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-36"></td>
-      <td class="p-2"><input type="number" min="1" max="8" value="${r[3]}" id="raw-pl-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-12"></td>
-      <td class="p-2"><input type="text" value="${r[6] || 'Official'}" id="raw-t-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-20"></td>
-      <td class="p-2"><input type="text" value="${r[7] || getTeamDivision(r[5])}" id="raw-dv-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-24"></td>
+      <td class="p-2"><input type="text" value="${r.at(1)}" id="raw-p-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-28"></td>
+      <td class="p-2"><input list="course-list" value="${r.at(2)}" id="raw-c-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-36"></td>
+      <td class="p-2"><input type="number" min="1" max="8" value="${r.at(3)}" id="raw-pl-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-12"></td>
+      <td class="p-2"><input type="text" value="${r.at(6) || 'Official'}" id="raw-t-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-20"></td>
+      <td class="p-2"><input type="text" value="${r.at(7) || getTeamDivision(r.at(5))}" id="raw-dv-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-24"></td>
       <td class="p-2 text-right space-x-1 whitespace-nowrap">
-        <button onclick="saveRawRow(${rowNum}, '${String(r[5] || '').replace(/'/g, "\\'")}')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-bold">Save</button>
+        <button onclick="saveRawRow(${rowNum}, '${String(r.at(5) || '').replace(/'/g, "\\'")}')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-bold">Save</button>
         <button onclick="deleteRawRow(${rowNum})" class="px-2 py-1 bg-rose-600/80 hover:bg-rose-500 rounded text-white font-bold">Del</button>
       </td>`;
     tbody.appendChild(tr);
