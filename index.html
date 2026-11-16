@@ -1094,45 +1094,6 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-
-  // 2. Populate "4 Unplayed Tracks Matching Your Style"
-  const styleEntries = Object.entries(styleStats)
-    .map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count }))
-    .sort((a, b) => a.avg - b.avg);
-
-  const pracHeader = document.getElementById('practice-style-header');
-  const prac4El = document.getElementById('practice-4-tracks-list');
-
-  if (styleEntries.length > 0) {
-    const bestStyle = styleEntries.at(0);
-    pracHeader.textContent = `Try These 4 ${bestStyle.style} Tracks`;
-    const unplayed = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0));
-    const picks = unplayed.slice(0, 4);
-
-    if (picks.length === 0) {
-      prac4El.innerHTML = `<p class="text-slate-300">You have already played every <strong class="text-white">${bestStyle.style}</strong> track!</p>`;
-    } else {
-      prac4El.innerHTML = picks.map(track => `
-        <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
-          <span class="font-semibold text-white">${track}</span>
-          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">0 Plays • ${bestStyle.style}</span>
-        </div>`).join('');
-    }
-  } else {
-    pracHeader.textContent = '4 Unplayed Tracks Matching Your Style';
-    prac4El.innerHTML = '<p class="text-slate-400">Log races to unlock style-matched practice suggestions.</p>';
-  }
-
-  // 3. Keep Full Table Populated Behind the Toggle Button
-  document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
-    <tr class="hover:bg-slate-700/30">
-      <td class="p-3 font-medium text-white">${c.course}</td>
-      <td class="p-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">${c.style}</span></td>
-      <td class="p-3">${c.count}</td>
-      <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
-      <td class="p-3 text-slate-300">${c.topRacer}</td>
-    </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-}
   
 function updateStarterBenchPanel(squadName, logs) {
   const starters = appConfig.players
