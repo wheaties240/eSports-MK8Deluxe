@@ -1157,7 +1157,6 @@ function openPlayerCard(playerName) {
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Player Performance Report (${matchType})</span>
             <span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span>
-            ${trend.badgeHTML}
           </div>
           <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1 flex items-center">${playerName}${largeTrendIcon}</h2>
           <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
@@ -1349,15 +1348,39 @@ function closeModal() { document.getElementById('card-modal').classList.add('hid
 
 async function downloadCardPNG() {
   const btn = document.getElementById('btn-save-png');
-  btn.textContent = 'Rendering...'; btn.disabled = true;
+  btn.textContent = 'Rendering...';
+  btn.disabled = true;
+
   try {
-    const canvas = await html2canvas(document.getElementById('print-area'), { backgroundColor: '#1e293b', scale: 2 });
+    if (typeof html2canvas === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://' + '://cloudflare.com' + '/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const target = document.getElementById('print-area');
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#1e293b',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+
     const link = document.createElement('a');
     link.download = `${currentCardTitle}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-  } catch (e) { alert('Could not generate image. Try the Print button instead.'); }
-  btn.textContent = 'Save PNG'; btn.disabled = false;
+  } catch (e) {
+    console.error('PNG Export Error:', e);
+    alert('Could not generate image. Check console or try Print -> Save as PDF.');
+  } finally {
+    btn.textContent = 'Save PNG';
+    btn.disabled = false;
+  }
 }
 
 function openRawDataModal() {
