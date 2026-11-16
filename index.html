@@ -1305,16 +1305,74 @@ function renderSquadPlaybook() {
     };
   };
   const getTopTracksForLineup = (rosterNames) => {
-    const trackMap = {};
-    logs.forEach(([t, player, course, place]) => {
-      if (rosterNames.includes(player)) {
-        if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0, racers: new Set() };
-        trackMap[course].count++; trackMap[course].sum += Number(place); trackMap[course].racers.add(player);
-      }
+    if (!rosterNames || rosterNames.length === 0) return [];
+
+    // 1. Pre-calculate each selected player's overall baseline average as a fallback
+    const playerBaselines = {};
+    rosterNames.forEach(name => {
+      const pLogs = logs.filter(r => r.at(1) === name);
+      playerBaselines[name] = pLogs.length
+        ? pLogs.reduce((sum, r) => sum + Number(r.at(3)), 0) / pLogs.length
+        : 4.5;
     });
-    return Object.entries(trackMap).map(([course, d]) => ({
-      course, count: d.count, racerCount: d.racers.size, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
-    })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum).slice(0, 4);
+
+    // 2. Group all squad logs by course
+    const trackMap = {};
+    logs.forEach(([t, player, course, place, pts, team]) => {
+      const dateKey = t ? new Date(t).toISOString().slice(0, 10) : 'unknown';
+      const sessionKey = `${dateKey}_${String(team || 'Unassigned').trim()}`;
+      if (!trackMap[course]) {
+        trackMap[course] = { sessions: new Set(), totalLogs: 0, sum: 0, byPlayer: {} };
+      }
+      trackMap[course].sessions.add(sessionKey);
+      trackMap[course].totalLogs++;
+      trackMap[course].sum += Number(place);
+
+      if (!trackMap[course].byPlayer[player]) {
+        trackMap[course].byPlayer[player] = { count: 0, sum: 0 };
+      }
+      trackMap[course].byPlayer[player].count++;
+      trackMap[course].byPlayer[player].sum += Number(place);
+    });
+
+    // 3. Score each track specifically for the 4 active players in this game
+    return Object.entries(trackMap).map(([course, d]) => {
+      const teamSessions = d.sessions.size;
+      const squadTrackAvg = d.sum / d.totalLogs;
+
+      let lineupSum = 0;
+      let activeRepsCount = 0;
+
+      rosterNames.forEach(name => {
+        const pTrack = d.byPlayer[name];
+        if (pTrack && pTrack.count > 0) {
+          lineupSum += (pTrack.sum / pTrack.count);
+          activeRepsCount++;
+        } else {
+          // Fallback to player's overall average + 0.5 buffer if they haven't raced this track
+          lineupSum += (playerBaselines[name] + 0.5);
+        }
+      });
+
+      const lineupExpectedAvg = lineupSum / rosterNames.length;
+      const coverageRatio = activeRepsCount / rosterNames.length; // 0.25 to 1.0
+
+      // Composite score (lower is better): 60% active 4-player fit, 25% squad history, 15% familiarity bonus
+      const synergyScore = (lineupExpectedAvg * 0.60) + (squadTrackAvg * 0.25) - (coverageRatio * 0.75);
+
+      return {
+        course,
+        count: teamSessions,
+        racerCount: activeRepsCount,
+        totalLineup: rosterNames.length,
+        avgNum: lineupExpectedAvg,
+        avgDisplay: `${lineupExpectedAvg.toFixed(2)}${teamSessions < 3 ? '*' : ''}`,
+        synergyScore
+      };
+    })
+    .filter(t => t.racerCount > 0) // Must have been played by at least 1 racer in this lineup
+    .sort((a, b) => (a.count >= 2 ? 0 : 1) - (b.count >= 2 ? 0 : 1) || a.synergyScore - b.synergyScore)
+    .slice(0, 4);
   };
 
   const g2In = gameLineups.g2.filter(p => !gameLineups.g1.includes(p)), g2Out = gameLineups.g1.filter(p => !gameLineups.g2.includes(p));
