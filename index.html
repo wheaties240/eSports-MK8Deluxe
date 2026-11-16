@@ -1125,6 +1125,25 @@ function openPlayerCard(playerName) {
     </div>`;
   document.getElementById('card-modal').classList.remove('hidden');
 }
+  
+function openSquadCard() {
+  const squadName = document.getElementById('filter-squad').value;
+  const squadPlayers = appConfig.players.filter(p => p.team === squadName);
+  const starters = squadPlayers.filter(p => p.role === 'Starter').map(p => p.name);
+  const bench = squadPlayers.filter(p => p.role === 'Bench').map(p => p.name);
+
+  gameLineups.g1 = starters.slice(0, 4);
+  if (gameLineups.g1.length === 0) gameLineups.g1 = squadPlayers.slice(0, 4).map(p => p.name);
+  const g2Default = [...bench];
+  for (const s of starters) { if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s); }
+  gameLineups.g2 = g2Default.slice(0, 4);
+  gameLineups.g3 = [...gameLineups.g1];
+
+  renderInFormSuggestions(squadPlayers);
+  renderLineupBuilderControls(squadPlayers);
+  renderSquadPlaybook();
+  document.getElementById('card-modal').classList.remove('hidden');
+}
 
 function renderInFormSuggestions(squadPlayers) {
   const box = document.getElementById('in-form-suggestions');
