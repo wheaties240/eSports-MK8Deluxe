@@ -1045,9 +1045,13 @@ function toggleAllCoursesTable() {
 }
 
 function renderCourseAndPracticeTables(courseStats, styleStats) {
-    const selectedSquad = document.getElementById('filter-squad').value;
-    const scopeLabel = selectedSquad === 'ALL' ? 'Whole Program' : selectedSquad;
-    const courseRows = Object.entries(courseStats).map(([course, d]) => {
+  const selectedSquad = document.getElementById('filter-squad').value;
+  const scopeLabel = selectedSquad === 'ALL' ? 'Whole Program' : selectedSquad;
+
+  const topHeader = document.getElementById('top-tracks-header');
+  if (topHeader) topHeader.textContent = `${scopeLabel}: Top 4 Tracks`;
+
+  const courseRows = Object.entries(courseStats).map(([course, d]) => {
     const logTotal = d.totalLogs || d.count;
     const avgNum = d.sum / logTotal;
     let topRacer = "N/A", topAvg = 99;
@@ -1065,11 +1069,13 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
     };
   }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
+  // 1. Render Top 4 Tracks
   const top4El = document.getElementById('top-4-tracks-list');
-  if (courseRows.length === 0) {
+  const top4Tracks = courseRows.slice(0, 4);
+  if (top4Tracks.length === 0) {
     top4El.innerHTML = '<p class="text-slate-400">Log races to see your top 4 tracks.</p>';
   } else {
-    top4El.innerHTML = courseRows.slice(0, 4).map((c, idx) => `
+    top4El.innerHTML = top4Tracks.map((c, idx) => `
       <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
         <div>
           <span class="font-bold text-emerald-400 mr-1.5">#${idx + 1}</span>
@@ -1080,36 +1086,70 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       </div>`).join('');
   }
 
+  // 2. Determine Dominant Style from the Top 4 Tracks (with overall styleStats fallback)
+  const pracHeader = document.getElementById('practice-style-header');
+  const prac4El = document.getElementById('practice-4-tracks-list');
   const styleEntries = Object.entries(styleStats)
     .map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count }))
     .sort((a, b) => a.avg - b.avg);
 
-  const pracHeader = document.getElementById('practice-style-header');
-  const prac4El = document.getElementById('practice-4-tracks-list');
+  if (top4Tracks.length > 0 && styleEntries.length > 0) {
+    const top4StyleCounts = {};
+    top4Tracks.forEach(t => {
+      top4StyleCounts[t.style] = (top4StyleCounts[t.style] || 0) + 1;
+    });
 
-  if (styleEntries.length > 0) {
-    const bestStyle = styleEntries.at(0);
+    // Pick the style that appears most in the Top 4 (tie-broken by best overall style avg)
+    const targetStyleName = Object.entries(top4StyleCounts)
+      .sort((a, b) => b[1] - a[1] || (styleStats[a[0]].sum / styleStats[a[0]].count) - (styleStats[b[0]].sum / styleStats[b[0]].count))
+      .at(0)[0];
+
+    const targetStyleObj = styleEntries.find(s => s.style === targetStyleName) || styleEntries.at(0);
     const worstStyle = styleEntries.at(-1);
-    pracHeader.textContent = `Practice Lab: 4 Complementary ${bestStyle.style} Picks`;
 
-    const unplayedBest = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0)).slice(0, 4);
+    pracHeader.textContent = `${scopeLabel} Practice Lab: 4 ${targetStyleName} Picks`;
+
+    // Score unplayed tracks dynamically using squad-specific deterministic seed + style match
+    const squadSeed = scopeLabel.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    const unplayedMatching = COURSES
+      .filter(c => TRACK_STYLES[c] === targetStyleName && (!courseStats[c] || courseStats[c].count === 0))
+      .map((track, idx) => ({
+        track,
+        rankKey: ((idx * 31 + squadSeed) % 97)
+      }))
+      .sort((a, b) => a.rankKey - b.rankKey)
+      .slice(0, 4)
+      .map(item => item.track);
+
     const whyBanner = `<p class="text-[11px] text-slate-300 leading-relaxed pb-1">
-      <strong class="text-indigo-300">Why these:</strong> Your squad averages <strong class="text-emerald-400">${bestStyle.avg.toFixed(2)}</strong> on <strong>${bestStyle.style}</strong> courses. Practicing these unplayed tracks builds low-scouted counter-picks that fit your drivers' natural strengths${worstStyle && worstStyle.style !== bestStyle.style ? ` (while <strong>${worstStyle.style}</strong> at ${worstStyle.avg.toFixed(2)} avg is your biggest growth area)` : ''}.
+      <strong class="text-indigo-300">Why these:</strong> ${top4StyleCounts[targetStyleName]} of ${scopeLabel}'s Top 4 tracks are <strong>${targetStyleName}</strong> (${targetStyleObj.avg.toFixed(2)} avg). Practicing these unplayed courses builds low-scouted counter-picks matching your top tracks${worstStyle && worstStyle.style !== targetStyleName ? ` (while <strong>${worstStyle.style}</strong> at ${worstStyle.avg.toFixed(2)} avg is your biggest growth area)` : ''}.
     </p>`;
 
-    if (unplayedBest.length === 0) {
-      prac4El.innerHTML = whyBanner + `<p class="text-slate-300">You have already played every <strong class="text-white">${bestStyle.style}</strong> track!</p>`;
+    if (unplayedMatching.length === 0) {
+      prac4El.innerHTML = whyBanner + `<p class="text-slate-300">${scopeLabel} has already played every <strong class="text-white">${targetStyleName}</strong> track!</p>`;
     } else {
-      prac4El.innerHTML = whyBanner + unplayedBest.map(track => `
+      prac4El.innerHTML = whyBanner + unplayedMatching.map(track => `
         <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
           <span class="font-semibold text-white">${track}</span>
-          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">0 Plays • Sleeper Pick</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">0 Plays • ${targetStyleName}</span>
         </div>`).join('');
     }
   } else {
-    pracHeader.textContent = 'Practice Lab: Track Suggestions';
+    pracHeader.textContent = `${scopeLabel} Practice Lab: Track Suggestions`;
     prac4El.innerHTML = '<p class="text-slate-400">Log races to unlock style-matched practice suggestions.</p>';
   }
+
+  // 3. Populate Full Table
+  document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
+    <tr class="hover:bg-slate-700/30">
+      <td class="p-3 font-medium text-white">${c.course}</td>
+      <td class="p-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">${c.style}</span></td>
+      <td class="p-3">${c.count}</td>
+      <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
+      <td class="p-3 text-slate-300">${c.topRacer}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
+}
+
 
   document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
     <tr class="hover:bg-slate-700/30">
