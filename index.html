@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mario Kart eSports Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com"></script>
+  <script src="https://cdnjs://.cloudflare.com"></script>
   <style>
     @media print {
       nav, main, .no-print { display: none !important; }
@@ -1149,7 +1149,7 @@ function openPlayerCard(playerName) {
 
   const topTrackName = sortedTracks.at(0) ? sortedTracks.at(0).course : 'N/A';
   currentCardTitle = `${playerName.replace(/\s+/g, '_')}_Stats_${dateStamp.replace(/[\s,]+/g, '_')}`;
-
+  const largeTrendIcon = trend.badgeHTML ? trend.badgeHTML.replace('w-4 h-4', 'w-7 h-7').replace('ml-1.5', 'ml-2') : '';
   document.getElementById('print-area').innerHTML = `
     <div class="w-full space-y-6">
       <div class="border-b border-slate-700 pb-4 flex justify-between items-start print-light">
@@ -1159,7 +1159,7 @@ function openPlayerCard(playerName) {
             <span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span>
             ${trend.badgeHTML}
           </div>
-          <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${playerName}</h2>
+          <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1 flex items-center">${playerName}${largeTrendIcon}</h2>
           <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
         </div>
         <div class="text-right">
