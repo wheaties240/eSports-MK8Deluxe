@@ -912,11 +912,11 @@ function calculatePlayerTrend(pLogs) {
 
   if (delta >= 0.75) {
     badgeHTML = `<span title="Trending Up (+${delta.toFixed(1)} spots vs. season avg)" class="inline-flex items-center ml-1.5 align-middle text-emerald-400">
-      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd" /></svg>
+      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clip-rule="evenodd" /></svg>
     </span>`;
   } else if (delta <= -0.75) {
     badgeHTML = `<span title="Cooling Off (${delta.toFixed(1)} spots vs. season avg)" class="inline-flex items-center ml-1.5 align-middle text-amber-400">
-      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clip-rule="evenodd" /></svg>
+      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 5.22a.75.75 0 011.06 0L13.5 12.44V6.75a.75.75 0 011.5 0v7.5a.75.75 0 01-.75.75h-7.5a.75.75 0 010-1.5h5.69L5.22 6.28a.75.75 0 010-1.06z" clip-rule="evenodd" /></svg>
     </span>`;
   }
   return { last12Avg, delta, badgeHTML };
@@ -1040,7 +1040,6 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
     return { course, style: TRACK_STYLES[course] || 'General', count: d.count, avgNum, avgDisplay: fmtAvg(d.sum, d.count), topRacer };
   }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
-  // 1. Populate "Your Squad's Top 4 Tracks"
   const top4El = document.getElementById('top-4-tracks-list');
   if (courseRows.length === 0) {
     top4El.innerHTML = '<p class="text-slate-400">Log races to see your top 4 tracks.</p>';
@@ -1055,6 +1054,47 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
         <span class="font-extrabold text-emerald-400">${c.avgDisplay} avg</span>
       </div>`).join('');
   }
+
+  const styleEntries = Object.entries(styleStats)
+    .map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count }))
+    .sort((a, b) => a.avg - b.avg);
+
+  const pracHeader = document.getElementById('practice-style-header');
+  const prac4El = document.getElementById('practice-4-tracks-list');
+
+  if (styleEntries.length > 0) {
+    const bestStyle = styleEntries.at(0);
+    const worstStyle = styleEntries.at(-1);
+    pracHeader.textContent = `Practice Lab: 4 Complementary ${bestStyle.style} Picks`;
+
+    const unplayedBest = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0)).slice(0, 4);
+    const whyBanner = `<p class="text-[11px] text-slate-300 leading-relaxed pb-1">
+      <strong class="text-indigo-300">Why these:</strong> Your squad averages <strong class="text-emerald-400">${bestStyle.avg.toFixed(2)}</strong> on <strong>${bestStyle.style}</strong> courses. Practicing these unplayed tracks builds low-scouted counter-picks that fit your drivers' natural strengths${worstStyle && worstStyle.style !== bestStyle.style ? ` (while <strong>${worstStyle.style}</strong> at ${worstStyle.avg.toFixed(2)} avg is your biggest growth area)` : ''}.
+    </p>`;
+
+    if (unplayedBest.length === 0) {
+      prac4El.innerHTML = whyBanner + `<p class="text-slate-300">You have already played every <strong class="text-white">${bestStyle.style}</strong> track!</p>`;
+    } else {
+      prac4El.innerHTML = whyBanner + unplayedBest.map(track => `
+        <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
+          <span class="font-semibold text-white">${track}</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">0 Plays • Sleeper Pick</span>
+        </div>`).join('');
+    }
+  } else {
+    pracHeader.textContent = 'Practice Lab: Track Suggestions';
+    prac4El.innerHTML = '<p class="text-slate-400">Log races to unlock style-matched practice suggestions.</p>';
+  }
+
+  document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
+    <tr class="hover:bg-slate-700/30">
+      <td class="p-3 font-medium text-white">${c.course}</td>
+      <td class="p-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">${c.style}</span></td>
+      <td class="p-3">${c.count}</td>
+      <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
+      <td class="p-3 text-slate-300">${c.topRacer}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
+}
 
   // 2. Populate "4 Unplayed Tracks Matching Your Style"
   const styleEntries = Object.entries(styleStats)
@@ -1195,14 +1235,18 @@ function openPlayerCard(playerName) {
   
 function openSquadCard() {
   const squadName = document.getElementById('filter-squad').value;
-  const squadPlayers = appConfig.players.filter(p => p.team === squadName);
+  if (!squadName || squadName === 'ALL') return;
+
+  const squadPlayers = appConfig.players.filter(p => String(p.team || '').trim() === squadName);
   const starters = squadPlayers.filter(p => p.role === 'Starter').map(p => p.name);
   const bench = squadPlayers.filter(p => p.role === 'Bench').map(p => p.name);
 
   gameLineups.g1 = starters.slice(0, 4);
   if (gameLineups.g1.length === 0) gameLineups.g1 = squadPlayers.slice(0, 4).map(p => p.name);
   const g2Default = [...bench];
-  for (const s of starters) { if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s); }
+  for (const s of starters) {
+    if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s);
+  }
   gameLineups.g2 = g2Default.slice(0, 4);
   gameLineups.g3 = [...gameLineups.g1];
 
