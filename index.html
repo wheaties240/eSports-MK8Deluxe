@@ -909,13 +909,19 @@ function calculatePlayerTrend(pLogs) {
   const last12Avg = recent.reduce((acc, r) => acc + Number(r.at(3)), 0) / recent.length;
   const delta = seasonAvg - last12Avg;
   let badgeHTML = '';
+
   if (delta >= 0.75) {
-    badgeHTML = `<span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Trending Up</span>`;
+    badgeHTML = `<span title="Trending Up (+${delta.toFixed(1)} spots vs. season avg)" class="inline-flex items-center ml-1.5 align-middle text-emerald-400">
+      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd" /></svg>
+    </span>`;
   } else if (delta <= -0.75) {
-    badgeHTML = `<span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Cooling Off</span>`;
+    badgeHTML = `<span title="Cooling Off (${delta.toFixed(1)} spots vs. season avg)" class="inline-flex items-center ml-1.5 align-middle text-amber-400">
+      <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clip-rule="evenodd" /></svg>
+    </span>`;
   }
   return { last12Avg, delta, badgeHTML };
 }
+
 async function loadStats() {
   const res = await fetch(`${API_URL}?action=stats`);
   const data = await res.json();
