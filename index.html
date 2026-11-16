@@ -1391,27 +1391,6 @@ async function downloadCardPNG() {
   }
 }
 
-    const target = document.getElementById('print-area');
-    const canvas = await html2canvas(target, {
-      backgroundColor: '#1e293b',
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
-
-    const link = document.createElement('a');
-    link.download = `${currentCardTitle}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  } catch (e) {
-    console.error('PNG Export Error:', e);
-    alert('Could not generate image. Check console or try Print -> Save as PDF.');
-  } finally {
-    btn.textContent = 'Save PNG';
-    btn.disabled = false;
-  }
-}
-
 function openRawDataModal() {
   document.getElementById('raw-data-modal').classList.remove('hidden');
   renderRawDataTable();
