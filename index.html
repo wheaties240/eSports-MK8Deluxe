@@ -1094,7 +1094,6 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-}
 
   // 2. Populate "4 Unplayed Tracks Matching Your Style"
   const styleEntries = Object.entries(styleStats)
@@ -1133,7 +1132,8 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-
+}
+  
 function updateStarterBenchPanel(squadName, logs) {
   const starters = appConfig.players
     .filter(p => (squadName === 'ALL' || p.team === squadName) && p.role === 'Starter')
@@ -1321,7 +1321,7 @@ function renderSquadPlaybook() {
     });
     const best = Object.entries(courses)
       .map(([k, v]) => ({ k, c: v.c, avg: v.s / v.c }))
-      .sort((a, b) => (a.c >= 3 ? 0 : 1) - (b.c >= 3 ? 0 : 1) || a.avg - b.avg);
+    .sort((a, b) => (a.c >= 3 ? 0 : 1) - (b.c >= 3 ? 0 : 1) || a.avg - b.avg).at(0);
     return {
       races: pLogs.length,
       avg: fmtAvg(sum, pLogs.length),
