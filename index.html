@@ -198,17 +198,31 @@
         </div>
       </div>
 
-      <!-- Course Guide + Practice Suggestions -->
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-        <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
+      <!-- Course Selection & Practice Guide -->
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden p-5 space-y-4">
+        <div class="flex flex-wrap justify-between items-center gap-2">
           <div>
-            <h3 class="font-bold text-lg">Course Selection & Practice Guide</h3>
-            <p class="text-xs text-slate-400">Tracks with 3+ races ranked first • Practice suggestions match your squad's strongest track styles</p>
+            <h3 class="font-bold text-lg text-white">Course Selection & Practice Guide</h3>
+            <p class="text-xs text-slate-400">Your strongest proven tracks and unplayed courses matching your squad's driving style</p>
           </div>
-          <span class="text-xs text-amber-300">* Fewer than 3 races logged</span>
+          <button type="button" onclick="toggleAllCoursesTable()" id="btn-toggle-courses" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold text-slate-200 transition">
+            Show Full Track Table
+          </button>
         </div>
-        <div id="track-practice-suggestions" class="hidden p-4 bg-slate-900/60 border-b border-slate-700"></div>
-        <div class="overflow-x-auto">
+
+        <div id="course-cards-summary" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-900/70 p-4 rounded-xl border border-emerald-500/30 space-y-2.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Your Squad's Top 4 Tracks</div>
+            <div id="top-4-tracks-list" class="space-y-2 text-xs"></div>
+          </div>
+
+          <div class="bg-slate-900/70 p-4 rounded-xl border border-indigo-500/30 space-y-2.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-indigo-400" id="practice-style-header">4 Unplayed Tracks Matching Your Style</div>
+            <div id="practice-4-tracks-list" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <div id="full-course-table-wrapper" class="hidden overflow-x-auto pt-2 border-t border-slate-700">
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-900/50 text-slate-400">
               <tr>
@@ -1002,6 +1016,13 @@ function renderTables() {
 
   renderCourseAndPracticeTables(courseStats, styleStats);
 }
+function toggleAllCoursesTable() {
+  const wrapper = document.getElementById('full-course-table-wrapper');
+  const btn = document.getElementById('btn-toggle-courses');
+  const isHidden = wrapper.classList.toggle('hidden');
+  btn.textContent = isHidden ? 'Show Full Track Table' : 'Hide Full Track Table';
+}
+
 function renderCourseAndPracticeTables(courseStats, styleStats) {
   const courseRows = Object.entries(courseStats).map(([course, d]) => {
     const avgNum = d.sum / d.count;
@@ -1013,6 +1034,51 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
     return { course, style: TRACK_STYLES[course] || 'General', count: d.count, avgNum, avgDisplay: fmtAvg(d.sum, d.count), topRacer };
   }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
+  // 1. Populate "Your Squad's Top 4 Tracks"
+  const top4El = document.getElementById('top-4-tracks-list');
+  if (courseRows.length === 0) {
+    top4El.innerHTML = '<p class="text-slate-400">Log races to see your top 4 tracks.</p>';
+  } else {
+    top4El.innerHTML = courseRows.slice(0, 4).map((c, idx) => `
+      <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
+        <div>
+          <span class="font-bold text-emerald-400 mr-1.5">#${idx + 1}</span>
+          <span class="font-semibold text-white">${c.course}</span>
+          <span class="text-[11px] text-slate-400 ml-1">(${c.count}r • ${c.style})</span>
+        </div>
+        <span class="font-extrabold text-emerald-400">${c.avgDisplay} avg</span>
+      </div>`).join('');
+  }
+
+  // 2. Populate "4 Unplayed Tracks Matching Your Style"
+  const styleEntries = Object.entries(styleStats)
+    .map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count }))
+    .sort((a, b) => a.avg - b.avg);
+
+  const pracHeader = document.getElementById('practice-style-header');
+  const prac4El = document.getElementById('practice-4-tracks-list');
+
+  if (styleEntries.length > 0) {
+    const bestStyle = styleEntries.at(0);
+    pracHeader.textContent = `Try These 4 ${bestStyle.style} Tracks`;
+    const unplayed = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0));
+    const picks = unplayed.slice(0, 4);
+
+    if (picks.length === 0) {
+      prac4El.innerHTML = `<p class="text-slate-300">You have already played every <strong class="text-white">${bestStyle.style}</strong> track!</p>`;
+    } else {
+      prac4El.innerHTML = picks.map(track => `
+        <div class="flex items-center justify-between bg-slate-800/90 px-3 py-2 rounded-lg border border-slate-700">
+          <span class="font-semibold text-white">${track}</span>
+          <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">0 Plays • ${bestStyle.style}</span>
+        </div>`).join('');
+    }
+  } else {
+    pracHeader.textContent = '4 Unplayed Tracks Matching Your Style';
+    prac4El.innerHTML = '<p class="text-slate-400">Log races to unlock style-matched practice suggestions.</p>';
+  }
+
+  // 3. Keep Full Table Populated Behind the Toggle Button
   document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
     <tr class="hover:bg-slate-700/30">
       <td class="p-3 font-medium text-white">${c.course}</td>
@@ -1021,21 +1087,6 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-
-  const sugBox = document.getElementById('track-practice-suggestions');
-  const styleEntries = Object.entries(styleStats).map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count })).sort((a, b) => a.avg - b.avg);
-  if (styleEntries.length > 0) {
-    const bestStyle = styleEntries;
-    const unplayed = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0));
-    const picks = unplayed.slice(0, 4).join(', ') || 'All tracks in this style played!';
-    sugBox.classList.remove('hidden');
-    sugBox.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-      <div><span class="font-bold text-indigo-400 uppercase tracking-wider mr-1.5">Practice Lab Suggestion:</span>
-      <span class="text-slate-300">Your strongest style is <strong class="text-white">${bestStyle.style}</strong> (${bestStyle.avg.toFixed(2)} avg). Unplayed tracks to test in scrimmages: <strong class="text-emerald-400">${picks}</strong></span></div>
-    </div>`;
-  } else {
-    sugBox.classList.add('hidden');
-  }
 }
 
 function updateStarterBenchPanel(squadName, logs) {
