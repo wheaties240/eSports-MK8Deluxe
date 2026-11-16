@@ -982,8 +982,14 @@ function renderTables() {
     if (!playerStats[player].courses[course]) playerStats[player].courses[course] = { count: 0, sum: 0 };
     playerStats[player].courses[course].count++; playerStats[player].courses[course].sum += place;
 
-    if (!courseStats[course]) courseStats[course] = { count: 0, sum: 0, racers: {} };
-    courseStats[course].count++; courseStats[course].sum += place;
+       const dateKey = time ? new Date(time).toISOString().slice(0, 10) : 'unknown';
+    const sessionKey = `${dateKey}_${String(team || 'Unassigned').trim()}`;
+
+    if (!courseStats[course]) courseStats[course] = { count: 0, sum: 0, sessions: new Set(), racers: {} };
+    courseStats[course].sessions.add(sessionKey);
+    courseStats[course].count = courseStats[course].sessions.size;
+    courseStats[course].sum += place;
+    courseStats[course].totalLogs = (courseStats[course].totalLogs || 0) + 1;
     if (!courseStats[course].racers[player]) courseStats[course].racers[player] = { count: 0, sum: 0 };
     courseStats[course].racers[player].count++; courseStats[course].racers[player].sum += place;
 
@@ -1031,13 +1037,21 @@ function toggleAllCoursesTable() {
 
 function renderCourseAndPracticeTables(courseStats, styleStats) {
   const courseRows = Object.entries(courseStats).map(([course, d]) => {
-    const avgNum = d.sum / d.count;
+    const logTotal = d.totalLogs || d.count;
+    const avgNum = d.sum / logTotal;
     let topRacer = "N/A", topAvg = 99;
     Object.entries(d.racers).forEach(([p, pd]) => {
       const pAvg = pd.sum / pd.count;
       if (pAvg < topAvg) { topAvg = pAvg; topRacer = `${p} (${pAvg.toFixed(1)}${pd.count < 3 ? '*' : ''})`; }
     });
-    return { course, style: TRACK_STYLES[course] || 'General', count: d.count, avgNum, avgDisplay: fmtAvg(d.sum, d.count), topRacer };
+    return {
+      course,
+      style: TRACK_STYLES[course] || 'General',
+      count: d.count,
+      avgNum,
+      avgDisplay: `${avgNum.toFixed(2)}${d.count < 3 ? '*' : ''}`,
+      topRacer
+    };
   }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
 
   const top4El = document.getElementById('top-4-tracks-list');
