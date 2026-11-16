@@ -881,19 +881,19 @@ async function updatePlayer(name, idx) {
 
 function getChronologicalLogs(logsArray) {
   return [...logsArray].sort((a, b) => {
-    const tA = new Date(a[0]).getTime() || 0;
-    const tB = new Date(b[0]).getTime() || 0;
+    const tA = new Date(a.at(0)).getTime() || 0;
+    const tB = new Date(b.at(0)).getTime() || 0;
     if (tA !== tB) return tA - tB;
-    return (Number(a[8]) || 0) - (Number(b[8]) || 0);
+    return (Number(a.at(8)) || 0) - (Number(b.at(8)) || 0);
   });
 }
 
 function calculatePlayerTrend(pLogs) {
   if (pLogs.length < 6) return { last12Avg: null, delta: 0, badgeHTML: '' };
-  const seasonAvg = pLogs.reduce((acc, r) => acc + Number(r[3]), 0) / pLogs.length;
+  const seasonAvg = pLogs.reduce((acc, r) => acc + Number(r.at(3)), 0) / pLogs.length;
   const recent = pLogs.slice(-12);
-  const last12Avg = recent.reduce((acc, r) => acc + Number(r[3]), 0) / recent.length;
-  const delta = seasonAvg - last12Avg; // Positive means lower (better) placement recently
+  const last12Avg = recent.reduce((acc, r) => acc + Number(r.at(3)), 0) / recent.length;
+  const delta = seasonAvg - last12Avg;
   let badgeHTML = '';
   if (delta >= 0.75) {
     badgeHTML = `<span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Trending Up</span>`;
