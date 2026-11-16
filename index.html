@@ -1149,17 +1149,6 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
 }
-
-
-  document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
-    <tr class="hover:bg-slate-700/30">
-      <td class="p-3 font-medium text-white">${c.course}</td>
-      <td class="p-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">${c.style}</span></td>
-      <td class="p-3">${c.count}</td>
-      <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
-      <td class="p-3 text-slate-300">${c.topRacer}</td>
-    </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-}
   
 function updateStarterBenchPanel(squadName, logs) {
   const starters = appConfig.players
