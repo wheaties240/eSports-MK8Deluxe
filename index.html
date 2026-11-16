@@ -1094,6 +1094,7 @@ function renderCourseAndPracticeTables(courseStats, styleStats) {
       <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
       <td class="p-3 text-slate-300">${c.topRacer}</td>
     </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
+}
   
 function updateStarterBenchPanel(squadName, logs) {
   const starters = appConfig.players
