@@ -212,7 +212,7 @@
 
         <div id="course-cards-summary" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="bg-slate-900/70 p-4 rounded-xl border border-emerald-500/30 space-y-2.5">
-            <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Your Squad's Top 4 Tracks</div>
+          <div id="top-tracks-header" class="text-xs font-bold uppercase tracking-wider text-emerald-400">Your Squad's Top 4 Tracks</div>
             <div id="top-4-tracks-list" class="space-y-2 text-xs"></div>
           </div>
 
@@ -937,13 +937,22 @@ function getFilteredLogs() {
   const selectedSquad = document.getElementById('filter-squad').value;
   const selectedType = document.getElementById('filter-match-type').value;
   const selectedDiv = document.getElementById('filter-division').value;
+
+  const squadRosterNames = selectedSquad === 'ALL'
+    ? null
+    : new Set(appConfig.players.filter(p => String(p.team || '').trim() === selectedSquad).map(p => p.name));
+
   return allLogs.filter(r => {
+    const player = String(r.at(1) || '').trim();
     const rowTeam = String(r.at(5) || 'Unassigned').trim();
     const rowType = String(r.at(6) || 'Official').trim();
     const rowDiv = String(r.at(7) || getTeamDivision(rowTeam)).trim();
-    return (selectedSquad === 'ALL' || rowTeam === selectedSquad) &&
-           (selectedType === 'ALL' || rowType === selectedType) &&
-           (selectedDiv === 'ALL' || rowDiv === selectedDiv);
+
+    const matchesSquad = selectedSquad === 'ALL' || rowTeam === selectedSquad || (squadRosterNames && squadRosterNames.has(player));
+    const matchesType = selectedType === 'ALL' || rowType === selectedType;
+    const matchesDiv = selectedDiv === 'ALL' || rowDiv === selectedDiv;
+
+    return matchesSquad && matchesType && matchesDiv;
   });
 }
 
@@ -1036,7 +1045,9 @@ function toggleAllCoursesTable() {
 }
 
 function renderCourseAndPracticeTables(courseStats, styleStats) {
-  const courseRows = Object.entries(courseStats).map(([course, d]) => {
+    const selectedSquad = document.getElementById('filter-squad').value;
+    const scopeLabel = selectedSquad === 'ALL' ? 'Whole Program' : selectedSquad;
+    const courseRows = Object.entries(courseStats).map(([course, d]) => {
     const logTotal = d.totalLogs || d.count;
     const avgNum = d.sum / logTotal;
     let topRacer = "N/A", topAvg = 99;
