@@ -477,7 +477,7 @@ function populatePlayersAndSquads() {
     const opt = document.createElement('option');
     opt.value = p.name;
     opt.textContent = `${p.name} (${p.team || 'Unassigned'})`;
-    opt.dataset.team = p.team || 'Unassigned';
+    opt.dataset.team = p.team
     sel.appendChild(opt);
     if (p.team) squads.add(p.team);
   });
