@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mario Kart eSports Tracker</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-   <style>
+  <script src="https://tailwindcss.com"></script>
+  <script src="https://cloudflare.com"></script>
+  <style>
     @media print {
       nav, main, .no-print { display: none !important; }
       #card-modal {
@@ -36,7 +36,6 @@
 
 <nav class="bg-slate-800 border-b border-slate-700 px-4 py-3 flex flex-wrap justify-between items-center gap-2">
   <div class="flex items-center space-x-2">
-    <span class="text-2xl"></span>
     <h1 class="font-bold text-base sm:text-lg tracking-wide text-white">MK8 eSports Tracker</h1>
   </div>
   <div class="flex items-center gap-2 shrink-0">
@@ -45,1002 +44,1322 @@
   </div>
 </nav>
 
-  <main class="max-w-5xl mx-auto p-4 mt-4">
-    <div id="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
-      <p class="mt-2 text-slate-400 text-sm">Connecting to Team Sheet...</p>
+<main class="max-w-5xl mx-auto p-4 mt-4">
+  <div id="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent"></div>
+    <p class="mt-2 text-slate-400 text-sm">Connecting to Team Sheet...</p>
+  </div>
+
+  <!-- STUDENT VIEW -->
+  <section id="view-student" class="hidden space-y-6">
+    <div id="student-gate" class="max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+      <h2 class="text-xl font-bold mb-2">Enter Team Access Code</h2>
+      <p class="text-slate-400 text-sm mb-4">Ask your coach for today's team code to unlock race logging.</p>
+      <input type="text" id="input-team-code" placeholder="e.g. MarioKart26" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
+      <button onclick="unlockStudent()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white transition">Unlock Logger</button>
+      <p id="gate-error" class="text-rose-400 text-sm mt-2 hidden">Incorrect team code. Try again.</p>
     </div>
 
-    <section id="view-student" class="hidden space-y-6">
-      <div id="student-gate" class="max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-        <h2 class="text-xl font-bold mb-2">Enter Team Access Code</h2>
-        <p class="text-slate-400 text-sm mb-4">Ask your coach for today's team code to unlock race logging.</p>
-        <input type="text" id="input-team-code" placeholder="e.g. MarioKart26" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
-        <button onclick="unlockStudent()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white transition">Unlock Logger</button>
-        <p id="gate-error" class="text-rose-400 text-sm mt-2 hidden">Incorrect team code. Try again.</p>
+    <div id="student-form" class="hidden max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Log Race Result</h2>
+        <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">PlayVS 4v4</span>
       </div>
 
-      <div id="student-form" class="hidden max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Log Race Result</h2>
-          <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">PlayVS 4v4</span>
-        </div>
-
-        <label class="block text-sm font-medium text-slate-300 mb-1">Match Type</label>
-        <div class="grid grid-cols-2 gap-2 mb-4">          
-          <button type="button" id="btn-type-official" onclick="setMatchType('Official')" class="py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500">Official Match</button>
-          <button type="button" id="btn-type-practice" onclick="setMatchType('Practice')" class="py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700">Practice</button>
-        </div>
-
-        <label class="block text-sm font-medium text-slate-300 mb-1">1. Select Your Name</label>
-        <select id="select-player" onchange="autoSelectSquad()" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500"></select>
-
-        <label class="block text-sm font-medium text-slate-300 mb-1">2. Squad / Sub-Team</label>
-        <input list="squad-list" id="input-student-squad" placeholder="Auto-fills or pick squad..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500">
-        <datalist id="squad-list"></datalist>
-
-        <label class="block text-sm font-medium text-slate-300 mb-1">3. Course Played</label>
-        <input list="course-list" id="input-course" placeholder="Tap to browse or type track name..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500">
-        <datalist id="course-list"></datalist>
-
-        <label class="block text-sm font-medium text-slate-300 mb-1">4. Finishing Place (1st - 8th)</label>
-        <div class="grid grid-cols-4 gap-2 mb-6" id="place-grid"></div>
-
-        <button onclick="submitRace()" id="btn-submit-race" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white transition shadow-lg">Submit Race</button>
-        <p id="submit-status" class="text-center text-sm mt-3 hidden"></p>
+      <label class="block text-sm font-medium text-slate-300 mb-1">Match Type</label>
+      <div class="grid grid-cols-2 gap-2 mb-4">          
+        <button type="button" id="btn-type-official" onclick="setMatchType('Official')" class="py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500">Official Match</button>
+        <button type="button" id="btn-type-practice" onclick="setMatchType('Practice')" class="py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700">Practice</button>
       </div>
 
-      <div id="session-receipt-card" class="hidden max-w-md mx-auto bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-xl">
-        <div class="flex justify-between items-center mb-3">
-          <div>
-            <h3 class="font-bold text-white text-base">Current Game Receipts</h3>
-            <p class="text-xs text-slate-400" id="receipt-counter">0 of 6 PlayVS races logged</p>
-          </div>
-          <button onclick="clearReceipts()" class="px-3 py-1.5 bg-slate-700 hover:bg-rose-600/80 rounded-lg text-xs font-bold text-white transition">Start New Game</button>
+      <label class="block text-sm font-medium text-slate-300 mb-1">1. Select Your Name</label>
+      <select id="select-player" onchange="autoSelectSquad()" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500"></select>
+
+      <label class="block text-sm font-medium text-slate-300 mb-1">2. Squad / Sub-Team</label>
+      <input list="squad-list" id="input-student-squad" oninput="updateStudentDivisionBadge()" placeholder="Auto-fills or pick squad..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-1 focus:outline-none focus:border-indigo-500">
+      <datalist id="squad-list"></datalist>
+      <p id="student-division-indicator" class="text-xs text-slate-400 mb-4">Division: Auto-detected from squad</p>
+
+      <label class="block text-sm font-medium text-slate-300 mb-1">3. Course Played</label>
+      <input list="course-list" id="input-course" placeholder="Tap to browse or type track name..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500">
+      <datalist id="course-list"></datalist>
+
+      <label class="block text-sm font-medium text-slate-300 mb-1">4. Finishing Place (1st - 8th)</label>
+      <div class="grid grid-cols-4 gap-2 mb-6" id="place-grid"></div>
+
+      <button onclick="submitRace()" id="btn-submit-race" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white transition shadow-lg">Submit Race</button>
+      <p id="submit-status" class="text-center text-sm mt-3 hidden"></p>
+    </div>
+
+    <div id="session-receipt-card" class="hidden max-w-md mx-auto bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-xl">
+      <div class="flex justify-between items-center mb-3">
+        <div>
+          <h3 class="font-bold text-white text-base">Current Game Receipts</h3>
+          <p class="text-xs text-slate-400" id="receipt-counter">0 of 6 PlayVS races logged</p>
         </div>
-        <div id="receipt-list" class="space-y-2 text-sm"></div>
+        <button onclick="clearReceipts()" class="px-3 py-1.5 bg-slate-700 hover:bg-rose-600/80 rounded-lg text-xs font-bold text-white transition">Start New Game</button>
       </div>
-    </section>
-    <section id="view-coach" class="hidden">
-      <div id="coach-gate" class="max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-        <h2 class="text-xl font-bold mb-2">Coach Dashboard Login</h2>
-        <p class="text-slate-400 text-sm mb-4">Enter your Coach PIN to view team stats and manage roster.</p>
-        <input type="password" inputmode="numeric" pattern="[0-9]*" id="input-coach-pin" placeholder="Enter PIN" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
-        <button onclick="unlockCoach()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white transition">View Analytics</button>
-        <p id="pin-error" class="text-rose-400 text-sm mt-2 hidden">Invalid PIN.</p>
-      </div>
+      <div id="receipt-list" class="space-y-2 text-sm"></div>
+    </div>
+  </section>
 
-      <div id="coach-dashboard" class="hidden space-y-6">
-        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
-          <div class="flex flex-wrap gap-2 justify-between items-center">
-            <div class="flex flex-wrap gap-2 items-center">
-              <input type="text" id="new-player-name" placeholder="New racer name..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-              <input list="squad-list" id="new-player-squad" placeholder="Squad..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white w-44">
-              <select id="new-player-role" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-                <option value="Starter">Starter</option>
-                <option value="Bench">Bench</option>
-              </select>
-              <button onclick="addPlayer()" id="btn-add-player" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold text-white">+ Add Racer</button>
-            </div>
-            <button onclick="loadStats()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium text-white">↻ Refresh Data</button>
-          </div>
+  <!-- COACH VIEW -->
+  <section id="view-coach" class="hidden">
+    <div id="coach-gate" class="max-w-md mx-auto bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+      <h2 class="text-xl font-bold mb-2">Coach Dashboard Login</h2>
+      <p class="text-slate-400 text-sm mb-4">Enter your Coach PIN to view team stats and manage roster.</p>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" id="input-coach-pin" placeholder="Enter PIN" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:outline-none focus:border-indigo-500 mb-4">
+      <button onclick="unlockCoach()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-bold text-white transition">View Analytics</button>
+      <p id="pin-error" class="text-rose-400 text-sm mt-2 hidden">Invalid PIN.</p>
+    </div>
 
-          <div class="pt-3 border-t border-slate-700 flex flex-wrap gap-3 justify-between items-center">
-            <div class="flex flex-wrap gap-2 items-center">
-              <select id="filter-squad" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
-                <option value="ALL">All Squads (Whole Program)</option>
-              </select>
-              <select id="filter-match-type" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
-                 <option value="Official">Official Matches Only</option>
-                <option value="Practice">Practice Only</option>
-                <option value="ALL">All Races Combined</option>
-              </select>
-            </div>
-            <button id="btn-squad-card" onclick="openSquadCard()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold text-white shadow">Match Playbook</button>
+    <div id="coach-dashboard" class="hidden space-y-6">
+      <!-- Top Controls & Filters -->
+      <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
+        <div class="flex flex-wrap gap-2 justify-between items-center">
+          <div class="flex flex-wrap gap-2 items-center">
+            <input type="text" id="new-player-name" placeholder="New racer name..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <input list="squad-list" id="new-player-squad" placeholder="Squad..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white w-44">
+            <select id="new-player-role" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+              <option value="Starter">Starter</option>
+              <option value="Bench">Bench</option>
+            </select>
+            <button onclick="addPlayer()" id="btn-add-player" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold text-white">+ Add Racer</button>
           </div>
+          <button onclick="loadStats()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium text-white">Refresh Data</button>
         </div>
 
-        <div id="starter-bench-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="bg-slate-800 p-4 rounded-2xl border border-indigo-500/40">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Active Starters (Game 1)</span>
-              <span class="text-xs text-slate-400" id="starter-count">0 Racers</span>
-            </div>
-            <div class="text-2xl font-extrabold text-white" id="starter-avg">--</div>
-            <p class="text-xs text-slate-400 mt-1" id="starter-sub">Combined Avg Placement</p>
-          </div>
-          <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Bench / Reserves</span>
-              <span class="text-xs text-slate-400" id="bench-count">0 Racers</span>
-            </div>
-            <div class="text-2xl font-extrabold text-white" id="bench-avg">--</div>
-            <p class="text-xs text-slate-400 mt-1" id="bench-sub">Combined Avg Placement</p>
-          </div>
-        </div>
-
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
-            <div>
-              <h3 class="font-bold text-lg">Driver Standings & Averages</h3>
-              <p class="text-xs text-slate-400">Click any racer's name for their MLB-style stat card & printable sheet</p>
-            </div>
-            <span class="text-xs text-amber-300">* Fewer than 3 races (small sample size)</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-900/50 text-slate-400">
-                <tr>
-                  <th class="p-3">Rank</th>
-                  <th class="p-3">Racer</th>
-                  <th class="p-3">Squad & Role</th>
-                  <th class="p-3">Races</th>
-                  <th class="p-3">Avg Place</th>
-                  <th class="p-3">Total Pts</th>
-                  <th class="p-3">Best Track</th>
-                </tr>
-              </thead>
-              <tbody id="driver-table-body" class="divide-y divide-slate-700"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
-            <div>
-              <h3 class="font-bold text-lg">Course Selection Guide</h3>
-              <p class="text-xs text-slate-400">Tracks with 3+ races ranked first for reliable lobby picks</p>
-            </div>
-            <span class="text-xs text-amber-300">* Fewer than 3 races logged</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-900/50 text-slate-400">
-                <tr>
-                  <th class="p-3">Course</th>
-                  <th class="p-3">Times Played</th>
-                  <th class="p-3">Avg Place</th>
-                  <th class="p-3">Top Racer on Track</th>
-                </tr>
-              </thead>
-              <tbody id="course-table-body" class="divide-y divide-slate-700"></tbody>
-            </table>
-          </div>
-        </div>
-        
-        <!-- Coach Batch Race Logger -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
-          <div>
-            <h3 class="font-bold text-lg text-white">Batch Log Race Results</h3>
-            <p class="text-xs text-slate-400">Select a date, course, and check the racers who played to enter their 1–8 placements at once.</p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <input type="date" id="batch-date" onclick="this.showPicker && this.showPicker()" style="color-scheme: dark;" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white cursor-pointer">
-            <input list="course-list" id="batch-course" placeholder="Track / Course..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-            <select id="batch-type" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
-              <option value="Official">Official Match</option>
-              <option value="Practice">Practice</option>
+        <div class="pt-3 border-t border-slate-700 flex flex-wrap gap-3 justify-between items-center">
+          <div class="flex flex-wrap gap-2 items-center">
+            <select id="filter-squad" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
+              <option value="ALL">All Squads (Whole Program)</option>
+            </select>
+            <select id="filter-division" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
+              <option value="ALL">All Divisions</option>
+              <option value="Competitive">Competitive Only</option>
+              <option value="Recreational">Recreational Only</option>
+            </select>
+            <select id="filter-match-type" onchange="renderTables()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white font-medium">
+              <option value="Official">Official Matches Only</option>
+              <option value="Practice">Practice Only</option>
+              <option value="ALL">All Races Combined</option>
             </select>
           </div>
-
-          <div id="batch-player-list" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
-
-          <div class="flex items-center justify-between pt-1">
-            <p id="batch-status" class="text-xs text-emerald-400 hidden"></p>
-            <button type="button" onclick="submitBatchRace()" id="btn-batch-submit" class="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Save Race Batch</button>
-          </div>
-        </div>
-
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
-          <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="font-bold text-lg">Roster, Squad & Role Manager</h3>
-            <span class="text-xs text-slate-400">Promote/demote players or set Starter vs. Bench roles</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-900/50 text-slate-400">
-                <tr>
-                  <th class="p-3">Racer Name</th>
-                  <th class="p-3">Current Status</th>
-                  <th class="p-3">Update Squad & Role</th>
-                </tr>
-              </thead>
-              <tbody id="roster-table-body" class="divide-y divide-slate-700"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div id="card-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto p-4 flex items-start justify-center">
-      <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-3xl w-full my-6 shadow-2xl overflow-hidden">
-       <div class="bg-slate-900 px-5 py-3 border-b border-slate-700 flex flex-wrap gap-2 justify-between items-center no-print">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Match & Player Reports</span>
-        <div class="flex gap-2">
-          <button onclick="downloadCardPNG()" id="btn-save-png" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold text-white">Save PNG</button>
-          <button onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Print</button>
-          <button onclick="closeModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white">Close</button>
+          <button id="btn-squad-card" onclick="openSquadCard()" class="hidden px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold text-white shadow">Match Playbook</button>
         </div>
       </div>
 
-      <div id="lineup-builder-controls" class="hidden bg-slate-900/80 px-5 py-4 border-b border-slate-700 no-print space-y-3">
-        <div class="flex justify-between items-center">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Game Lineups (Max 4 Racers per Game)</h4>
-          <span class="text-xs text-slate-400">Updates match sheet automatically</span>
+      <!-- Starter vs Bench Panel -->
+      <!-- Starter vs Bench Panel -->
+      <div id="starter-bench-panel" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-slate-800 p-4 rounded-2xl border border-indigo-500/40">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Active Starters (Game 1)</span>
+            <span class="text-xs text-slate-400" id="starter-count">0 Racers</span>
+          </div>
+          <div class="text-2xl font-extrabold text-white" id="starter-avg">--</div>
+          <p class="text-xs text-slate-400 mt-1" id="starter-sub">Combined Avg Placement</p>
         </div>
-        <div id="lineup-builder-grid" class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs"></div>
+        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Bench / Reserves</span>
+            <span class="text-xs text-slate-400" id="bench-count">0 Racers</span>
+          </div>
+          <div class="text-2xl font-extrabold text-white" id="bench-avg">--</div>
+          <p class="text-xs text-slate-400 mt-1" id="bench-sub">Combined Avg Placement</p>
+        </div>
       </div>
 
-         <div id="print-area" class="p-6 bg-slate-800 text-slate-100 space-y-6"></div>
+      <!-- Driver Standings -->
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+        <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h3 class="font-bold text-lg">Driver Standings & Recent Form</h3>
+            <p class="text-xs text-slate-400">Click any racer for their stat card • Trend compares Last 12 races vs. Season Avg</p>
+          </div>
+          <span class="text-xs text-amber-300">* Fewer than 3 races</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/50 text-slate-400">
+              <tr>
+                <th class="p-3">Rank</th>
+                <th class="p-3">Racer & Form</th>
+                <th class="p-3">Squad & Role</th>
+                <th class="p-3">Races</th>
+                <th class="p-3">Season Avg</th>
+                <th class="p-3">Last 12 Avg</th>
+                <th class="p-3">Total Pts</th>
+                <th class="p-3">Best Track</th>
+              </tr>
+            </thead>
+            <tbody id="driver-table-body" class="divide-y divide-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Course Guide + Practice Suggestions -->
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+        <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h3 class="font-bold text-lg">Course Selection & Practice Guide</h3>
+            <p class="text-xs text-slate-400">Tracks with 3+ races ranked first • Practice suggestions match your squad's strongest track styles</p>
+          </div>
+          <span class="text-xs text-amber-300">* Fewer than 3 races logged</span>
+        </div>
+        <div id="track-practice-suggestions" class="hidden p-4 bg-slate-900/60 border-b border-slate-700"></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/50 text-slate-400">
+              <tr>
+                <th class="p-3">Course</th>
+                <th class="p-3">Style</th>
+                <th class="p-3">Times Played</th>
+                <th class="p-3">Avg Place</th>
+                <th class="p-3">Top Racer on Track</th>
+              </tr>
+            </thead>
+            <tbody id="course-table-body" class="divide-y divide-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Coach Batch Race Logger -->
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+        <div>
+          <h3 class="font-bold text-lg text-white">Batch Log Race Results</h3>
+          <p class="text-xs text-slate-400">Select a date, course, and check the racers who played to enter their 1–8 placements at once.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <input type="date" id="batch-date" onclick="this.showPicker && this.showPicker()" style="color-scheme: dark;" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white cursor-pointer">
+          <input list="course-list" id="batch-course" placeholder="Track / Course..." class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+          <select id="batch-type" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <option value="Official">Official Match</option>
+            <option value="Practice">Practice</option>
+          </select>
+          <select id="batch-division-override" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-sm text-white">
+            <option value="AUTO">Division: By Squad</option>
+            <option value="Competitive">Override: Competitive</option>
+            <option value="Recreational">Override: Recreational</option>
+          </select>
+        </div>
+
+        <div id="batch-player-list" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+
+        <div class="flex items-center justify-between pt-1">
+          <p id="batch-status" class="text-xs text-emerald-400 hidden"></p>
+          <button type="button" onclick="submitBatchRace()" id="btn-batch-submit" class="ml-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Save Race Batch</button>
+        </div>
+      </div>
+      <!-- Roster, Squad & Division Manager -->
+      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden">
+        <div class="p-4 border-b border-slate-700 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <h3 class="font-bold text-lg">Roster, Squad & Division Manager</h3>
+            <p class="text-xs text-slate-400">Set each squad's league tier (automatically tags student race entries) and manage player roles</p>
+          </div>
+        </div>
+        <div id="squad-division-settings" class="p-4 bg-slate-900/50 border-b border-slate-700 flex flex-wrap gap-3 items-center"></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/50 text-slate-400">
+              <tr>
+                <th class="p-3">Racer Name</th>
+                <th class="p-3">Current Status</th>
+                <th class="p-3">Update Squad & Role</th>
+              </tr>
+            </thead>
+            <tbody id="roster-table-body" class="divide-y divide-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Inconspicuous Raw Data Access -->
+      <div class="pt-4 pb-8 flex justify-end">
+        <button onclick="openRawDataModal()" class="text-xs text-slate-500 hover:text-slate-300 underline underline-offset-4 transition">
+          Manage Raw Match Data
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Player & Squad Report Modal -->
+<div id="card-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto p-4 flex items-start justify-center">
+  <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-3xl w-full my-6 shadow-2xl overflow-hidden">
+    <div class="bg-slate-900 px-5 py-3 border-b border-slate-700 flex flex-wrap gap-2 justify-between items-center no-print">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Match & Player Reports</span>
+      <div class="flex gap-2">
+        <button onclick="downloadCardPNG()" id="btn-save-png" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold text-white">Save PNG</button>
+        <button onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-xs font-bold text-white">Print</button>
+        <button onclick="closeModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white">Close</button>
+      </div>
+    </div>
+
+    <div id="lineup-builder-controls" class="hidden bg-slate-900/80 px-5 py-4 border-b border-slate-700 no-print space-y-3">
+      <div id="in-form-suggestions" class="bg-slate-800/90 p-3 rounded-xl border border-emerald-500/30 text-xs"></div>
+      <div class="flex justify-between items-center">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-400">Game Lineups (Max 4 Racers per Game)</h4>
+        <span class="text-xs text-slate-400">Updates match sheet automatically</span>
+      </div>
+      <div id="lineup-builder-grid" class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs"></div>
+    </div>
+
+    <div id="print-area" class="p-6 bg-slate-800 text-slate-100 space-y-6"></div>
   </div>
 </div>
-      <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const API_URL = urlParams.get('api') || 'https://script.google.com/macros/s/AKfycbz9NUryON_mDLgdpTOJ4UWk947i8Tsk_vJ_wx5WBRvqqxinb6BURAdv9riiZOPu33km/exec';
 
-    const COURSES = [
-      "Mario Kart Stadium", "Water Park", "Sweet Sweet Canyon", "Thwomp Ruins",
-      "Mario Circuit", "Toad Harbor", "Twisted Mansion", "Shy Guy Falls",
-      "Sunshine Airport", "Dolphin Shoals", "Electrodrome", "Mount Wario",
-      "Cloudtop Cruise", "Bone-Dry Dunes", "Bowser's Castle", "Rainbow Road",
-      "Moo Moo Meadows", "Mario Circuit (GBA)", "Cheep Cheep Beach", "Toad's Turnpike",
-      "Dry Dry Desert", "Donut Plains 3", "Royal Raceway", "DK Jungle",
-      "Wario Stadium", "Sherbet Land", "Music Park", "Yoshi Valley",
-      "Tick-Tock Clock", "Piranha Plant Slide", "Grumble Volcano", "Rainbow Road (N64)",
-      "Yoshi Circuit", "Excitebike Arena", "Dragon Driftway", "Mute City",
-      "Wario's Gold Mine", "Rainbow Road (SNES)", "Ice Ice Outpost", "Hyrule Circuit",
-      "Baby Park", "Cheese Land", "Wild Woods", "Animal Crossing",
-      "Neo Bowser City", "Ribbon Road", "Super Bell Subway", "Big Blue",
-      "Paris Promenade", "Toad Circuit", "Choco Mountain", "Coconut Mall",
-      "Tokyo Blur", "Shroom Ridge", "Sky Garden", "Ninja Hideaway",
-      "New York Minute", "Mario Circuit 3", "Kalimari Desert", "Waluigi Pinball",
-      "Sydney Sprint", "Snow Land", "Mushroom Gorge", "Sky-High Sundae",
-      "London Loop", "Boo Lake", "Rock Rock Mountain", "Maple Treeway",
-      "Berlin Byways", "Peach Gardens", "Merry Mountain", "Rainbow Road (3DS)",
-      "Amsterdam Drift", "Riverside Park", "DK Summit", "Yoshi's Island",
-      "Bangkok Rush", "Mario Circuit (DS)", "Waluigi Stadium", "Singapore Speedway",
-      "Athens Dash", "Daisy Cruiser", "Moonview Highway", "Squeaky Clean Sprint",
-      "Los Angeles Laps", "Sunset Wilds", "Koopa Cape", "Vancouver Velocity",
-      "Rome Avanti", "DK Mountain", "Daisy Circuit", "Piranha Plant Cove",
-      "Madrid Drive", "Rosalina's Ice World", "Bowser Castle 3", "Rainbow Road (Wii)"
-    ];
+<!-- Coach Raw Data Editor Modal -->
+<div id="raw-data-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto p-4 flex items-start justify-center">
+  <div class="bg-slate-800 border border-slate-600 rounded-2xl max-w-4xl w-full my-6 shadow-2xl overflow-hidden">
+    <div class="bg-slate-900 px-5 py-3 border-b border-slate-700 flex justify-between items-center">
+      <div>
+        <h3 class="text-sm font-bold text-white">Raw Match Log Editor</h3>
+        <p class="text-xs text-slate-400">Edit typos or delete accidental entries directly in your sheet</p>
+      </div>
+      <button onclick="closeRawDataModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white">Close</button>
+    </div>
+    <div class="p-4 space-y-3">
+      <div class="flex flex-wrap gap-2">
+        <input type="text" id="raw-search" oninput="renderRawDataTable()" placeholder="Filter by player, course, or date (YYYY-MM-DD)..." class="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-xs text-white">
+        <span id="raw-edit-status" class="text-xs text-emerald-400 self-center hidden"></span>
+      </div>
+      <div class="overflow-x-auto max-h-[60vh]">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-900 text-slate-400 sticky top-0">
+            <tr>
+              <th class="p-2">Date</th>
+              <th class="p-2">Racer</th>
+              <th class="p-2">Course</th>
+              <th class="p-2">Place</th>
+              <th class="p-2">Type</th>
+              <th class="p-2">Division</th>
+              <th class="p-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="raw-data-body" class="divide-y divide-slate-700"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
-    let appConfig = { players: [], teamCode: '', coachPin: '' };
-    let allLogs = [];
-    let selectedPlace = null;
-    let currentMatchType = 'Official';
-    let verifiedCoachPin = '';
-    let sessionReceipts = [];
-    let currentCardTitle = 'stat-card';
-    let gameLineups = { g1: [], g2: [], g3: [] };
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const API_URL = urlParams.get('api') || 'https://google.com';
 
-    function getFormattedDate() {
-      return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const TRACK_STYLES = {
+  "Neo Bowser City": "Technical Drift", "Ribbon Road": "Technical Drift", "Dragon Driftway": "Technical Drift",
+  "Yoshi Circuit": "Technical Drift", "Electrodrome": "Technical Drift", "Twisted Mansion": "Technical Drift",
+  "Shy Guy Falls": "Technical Drift", "Cloudtop Cruise": "Technical Drift", "Music Park": "Technical Drift",
+  "Wario's Gold Mine": "Technical Drift", "Ice Ice Outpost": "Technical Drift", "Super Bell Subway": "Technical Drift",
+  "Ninja Hideaway": "Technical Drift", "Sky Garden": "Technical Drift", "Piranha Plant Cove": "Technical Drift",
+  "Squeaky Clean Sprint": "Technical Drift", "Athens Dash": "Technical Drift", "Singapore Speedway": "Technical Drift",
+  "Bangkok Rush": "Technical Drift", "Vancouver Velocity": "Technical Drift", "Rome Avanti": "Technical Drift",
+  "Madrid Drive": "Technical Drift", "Rosalina's Ice World": "Technical Drift", "Daisy Circuit": "Technical Drift",
+
+  "Baby Park": "Speed / Item Heavy", "Excitebike Arena": "Speed / Item Heavy", "Cheese Land": "Speed / Item Heavy",
+  "Yoshi Valley": "Speed / Item Heavy", "Mario Kart Stadium": "Speed / Item Heavy", "Water Park": "Speed / Item Heavy",
+  "Mario Circuit": "Speed / Item Heavy", "Toad Harbor": "Speed / Item Heavy", "Sunshine Airport": "Speed / Item Heavy",
+  "Moo Moo Meadows": "Speed / Item Heavy", "Mario Circuit (GBA)": "Speed / Item Heavy", "Cheep Cheep Beach": "Speed / Item Heavy",
+  "Toad's Turnpike": "Speed / Item Heavy", "Dry Dry Desert": "Speed / Item Heavy", "Donut Plains 3": "Speed / Item Heavy",
+  "Royal Raceway": "Speed / Item Heavy", "Sherbet Land": "Speed / Item Heavy", "Hyrule Circuit": "Speed / Item Heavy",
+  "Animal Crossing": "Speed / Item Heavy", "Paris Promenade": "Speed / Item Heavy", "Toad Circuit": "Speed / Item Heavy",
+  "Coconut Mall": "Speed / Item Heavy", "Tokyo Blur": "Speed / Item Heavy", "Shroom Ridge": "Speed / Item Heavy",
+  "New York Minute": "Speed / Item Heavy", "Mario Circuit 3": "Speed / Item Heavy", "Kalimari Desert": "Speed / Item Heavy",
+  "Sydney Sprint": "Speed / Item Heavy", "Snow Land": "Speed / Item Heavy", "Sky-High Sundae": "Speed / Item Heavy",
+  "London Loop": "Speed / Item Heavy", "Boo Lake": "Speed / Item Heavy", "Berlin Byways": "Speed / Item Heavy",
+  "Peach Gardens": "Speed / Item Heavy", "Merry Mountain": "Speed / Item Heavy", "Amsterdam Drift": "Speed / Item Heavy",
+  "Riverside Park": "Speed / Item Heavy", "Yoshi's Island": "Speed / Item Heavy", "Mario Circuit (DS)": "Speed / Item Heavy",
+  "Daisy Cruiser": "Speed / Item Heavy", "Moonview Highway": "Speed / Item Heavy", "Los Angeles Laps": "Speed / Item Heavy",
+  "Sunset Wilds": "Speed / Item Heavy",
+
+  "Grumble Volcano": "High Hazard", "Rainbow Road": "High Hazard", "Bowser's Castle": "High Hazard",
+  "Bone-Dry Dunes": "High Hazard", "Rainbow Road (N64)": "High Hazard", "Rainbow Road (SNES)": "High Hazard",
+  "Tick-Tock Clock": "High Hazard", "Thwomp Ruins": "High Hazard", "Dolphin Shoals": "High Hazard",
+  "Waluigi Pinball": "High Hazard", "Rock Rock Mountain": "High Hazard", "Rainbow Road (3DS)": "High Hazard",
+  "Koopa Cape": "High Hazard", "Bowser Castle 3": "High Hazard", "Rainbow Road (Wii)": "High Hazard",
+
+  "Big Blue": "Shortcut Heavy", "Mute City": "Shortcut Heavy", "DK Summit": "Shortcut Heavy",
+  "Mushroom Gorge": "Shortcut Heavy", "Mount Wario": "Shortcut Heavy", "DK Jungle": "Shortcut Heavy",
+  "Wario Stadium": "Shortcut Heavy", "Piranha Plant Slide": "Shortcut Heavy", "Wild Woods": "Shortcut Heavy",
+  "Sweet Sweet Canyon": "Shortcut Heavy", "Choco Mountain": "Shortcut Heavy", "Maple Treeway": "Shortcut Heavy",
+  "Waluigi Stadium": "Shortcut Heavy", "DK Mountain": "Shortcut Heavy"
+};
+
+const COURSES = Object.keys(TRACK_STYLES).sort();
+let appConfig = { players: [], teamCode: '', coachPin: '', teamDivisions: {} };
+let allLogs = [];
+let selectedPlace = null;
+let currentMatchType = 'Official';
+let verifiedCoachPin = '';
+let sessionReceipts = [];
+let currentCardTitle = 'stat-card';
+let gameLineups = { g1: [], g2: [], g3: [] };
+let batchSelections = {};
+
+function getFormattedDate() {
+  return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getTeamDivision(teamName) {
+  const cleanTeam = String(teamName || 'Unassigned').trim();
+  if (appConfig.teamDivisions && appConfig.teamDivisions[cleanTeam]) {
+    return appConfig.teamDivisions[cleanTeam];
+  }
+  return cleanTeam.toLowerCase().includes('squid') ? 'Recreational' : 'Competitive';
+}
+
+window.onload = async () => {
+  populateCourses();
+  buildPlaceGrid();
+  try {
+    const res = await fetch(`${API_URL}?action=init`);
+    appConfig = await res.json();
+    if (!appConfig.teamDivisions) appConfig.teamDivisions = {};
+    populatePlayersAndSquads();
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('view-student').classList.remove('hidden');
+
+    if (localStorage.getItem('mk_team_code') === appConfig.teamCode) {
+      showStudentForm();
     }
+  } catch (err) {
+    document.getElementById('loading').innerHTML = `<p class="text-rose-400">Error connecting to Google Sheet. Check your API_URL.</p>`;
+  }
+};
 
-    window.onload = async () => {
-      populateCourses();
-      buildPlaceGrid();
-      try {
-        const res = await fetch(`${API_URL}?action=init`);
-        appConfig = await res.json();
-        populatePlayersAndSquads();
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('view-student').classList.remove('hidden');
+function setMatchType(type) {
+  currentMatchType = type;
+  const btnOff = document.getElementById('btn-type-official');
+  const btnPrac = document.getElementById('btn-type-practice');
+  if (type === 'Official') {
+    btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500';
+    btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
+  } else {
+    btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-amber-600 text-white border border-amber-500';
+    btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
+  }
+}
 
-        if (localStorage.getItem('mk_team_code') === appConfig.teamCode) {
-          showStudentForm();
-        }
-      } catch (err) {
-        document.getElementById('loading').innerHTML = `<p class="text-rose-400">Error connecting to Google Sheet. Check your API_URL.</p>`;
-      }
+function populateCourses() {
+  const dl = document.getElementById('course-list');
+  dl.innerHTML = '';
+  COURSES.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    dl.appendChild(opt);
+  });
+}
+
+function populatePlayersAndSquads() {
+  const sel = document.getElementById('select-player');
+  sel.innerHTML = '<option value="">-- Choose Racer --</option>';
+  const squads = new Set(["Nighthawk Shellshockers", "Squid Squad"]);
+  const players = Array.isArray(appConfig.players) ? appConfig.players : [];
+
+  players.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = `${p.name} (${p.team || 'Unassigned'})`;
+    opt.dataset.team = p.team || 'Unassigned';
+    sel.appendChild(opt);
+    if (p.team) squads.add(p.team);
+  });
+
+  updateSquadDropdowns(squads);
+  renderSquadDivisionSettings(squads);
+  renderRosterManager();
+  buildBatchPlayerList();
+}
+
+function updateStudentDivisionBadge() {
+  const squad = document.getElementById('input-student-squad').value.trim();
+  const indicator = document.getElementById('student-division-indicator');
+  if (!squad) {
+    indicator.textContent = 'Division: Auto-detected from squad';
+    return;
+  }
+  const div = getTeamDivision(squad);
+  indicator.innerHTML = `Auto-Tagged Division: <span class="font-bold ${div === 'Competitive' ? 'text-indigo-400' : 'text-amber-400'}">${div}</span>`;
+}
+
+function autoSelectSquad() {
+  const sel = document.getElementById('select-player');
+  const selectedOpt = sel.options[sel.selectedIndex];
+  if (selectedOpt && selectedOpt.dataset.team) {
+    document.getElementById('input-student-squad').value = selectedOpt.dataset.team;
+    updateStudentDivisionBadge();
+  }
+}
+
+function buildPlaceGrid() {
+  const grid = document.getElementById('place-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= 8; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = i;
+    btn.className = 'place-btn py-2.5 rounded-lg bg-slate-900 border border-slate-600 font-bold hover:border-indigo-400 transition';
+    btn.onclick = () => {
+      selectedPlace = i;
+      document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
+      btn.classList.add('bg-indigo-600', 'border-indigo-500');
     };
-    function setMatchType(type) {
-      currentMatchType = type;
-      const btnOff = document.getElementById('btn-type-official');
-      const btnPrac = document.getElementById('btn-type-practice');
-      if (type === 'Official') {
-        btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-indigo-600 text-white border border-indigo-500';
-        btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
-      } else {
-        btnPrac.className = 'py-2 rounded-xl font-bold text-sm bg-amber-600 text-white border border-amber-500';
-        btnOff.className = 'py-2 rounded-xl font-bold text-sm bg-slate-900 text-slate-400 border border-slate-700';
-      }
-    }
+    grid.appendChild(btn);
+  }
+}
 
-    function populateCourses() {
-      const dl = document.getElementById('course-list');
-      COURSES.sort().forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c;
-        dl.appendChild(opt);
-      });
-    }
+function switchTab(tab) {
+  document.getElementById('view-student').classList.toggle('hidden', tab !== 'student');
+  document.getElementById('view-coach').classList.toggle('hidden', tab !== 'coach');
+  document.getElementById('nav-student').className = tab === 'student' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
+  document.getElementById('nav-coach').className = tab === 'coach' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
+}
 
-    function populatePlayersAndSquads() {
-      const sel = document.getElementById('select-player');
-      sel.innerHTML = '<option value="">-- Choose Racer --</option>';
-      const squads = new Set(["Nighthawk Shellshockers", "Squid Squad"]);
-      const players = Array.isArray(appConfig.players) ? appConfig.players : [];
+function unlockStudent() {
+  const entered = document.getElementById('input-team-code').value.trim();
+  if (entered.toLowerCase() === appConfig.teamCode.toLowerCase()) {
+    localStorage.setItem('mk_team_code', appConfig.teamCode);
+    showStudentForm();
+  } else {
+    document.getElementById('gate-error').classList.remove('hidden');
+  }
+}
 
-      players.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.name;
-        opt.textContent = `${p.name} (${p.team || 'Unassigned'})`;
-        opt.dataset.team = p.team || 'Unassigned';
-        sel.appendChild(opt);
-        if (p.team) squads.add(p.team);
-      });
+function showStudentForm() {
+  document.getElementById('student-gate').classList.add('hidden');
+  document.getElementById('student-form').classList.remove('hidden');
+}
+async function submitRace() {
+  const player = document.getElementById('select-player').value;
+  const team = document.getElementById('input-student-squad').value.trim() || 'Unassigned';
+  const course = document.getElementById('input-course').value.trim();
+  const division = getTeamDivision(team);
+  const status = document.getElementById('submit-status');
+  const btn = document.getElementById('btn-submit-race');
 
-      updateSquadDropdowns(squads);
-      renderRosterManager();
-      buildBatchPlayerList();
-    }
+  if (!player || !course || !selectedPlace) {
+    status.textContent = "Please select your name, course, and placement.";
+    status.className = "text-center text-sm mt-3 text-rose-400";
+    status.classList.remove('hidden');
+    return;
+  }
 
-    let batchSelections = {};
+  btn.disabled = true;
+  btn.textContent = "Saving...";
 
-    function buildBatchPlayerList() {
-      const container = document.getElementById('batch-player-list');
-      if (!container) return;
-      batchSelections = {};
-      const players = Array.isArray(appConfig.players) ? [...appConfig.players] : [];
-      players.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'logRace',
+        teamCode: appConfig.teamCode,
+        player, team, course,
+        place: selectedPlace,
+        matchType: currentMatchType,
+        division
+      })
+    });
+    const result = await res.json();
+    if (result.status === 'success') {
+      status.textContent = `Saved: ${player} finished #${selectedPlace} on ${course} (${division})!`;
+      status.className = "text-center text-sm mt-3 text-emerald-400 font-medium";
+      status.classList.remove('hidden');
 
-      if (players.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-400">No active players found in your Google Sheet Players tab.</p>';
-        return;
-      }
-
-      container.innerHTML = players.map((p, idx) => {
-        const safeName = String(p.name || '').replace(/'/g, "\\'");
-        const safeTeam = String(p.team || 'Unassigned').replace(/'/g, "\\'");
-        return `
-          <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
-            <label class="flex items-center justify-between cursor-pointer select-none">
-              <span class="flex items-center gap-2 text-sm font-bold text-white">
-                <input type="checkbox" id="batch-chk-${idx}" onchange="toggleBatchPlayer(${idx}, '${safeName}', '${safeTeam}')" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600">
-                ${p.name}
-              </span>
-              <span class="text-[11px] text-slate-400">${p.team || 'Unassigned'}</span>
-            </label>
-            <div id="batch-places-${idx}" class="hidden grid grid-cols-8 gap-1 pt-1">
-              ${Array.from({ length: 8 }, (_, n) => n + 1).map(num => `
-                <button type="button" id="batch-btn-${idx}-${num}" onclick="setBatchPlace(${idx}, ${num})"
-                  class="py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400">
-                  ${num}
-                </button>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function toggleBatchPlayer(idx, playerName, teamName) {
-      const checked = document.getElementById(`batch-chk-${idx}`).checked;
-      const placeRow = document.getElementById(`batch-places-${idx}`);
-      if (checked) {
-        batchSelections[idx] = { player: playerName, team: teamName, place: null };
-        placeRow.classList.remove('hidden');
-      } else {
-        delete batchSelections[idx];
-        placeRow.classList.add('hidden');
-        setBatchPlace(idx, null);
-      }
-    }
-
-    function setBatchPlace(idx, placeNum) {
-      if (batchSelections[idx]) {
-        batchSelections[idx].place = placeNum;
-      }
-      Array.from({ length: 8 }, (_, i) => i + 1).forEach(n => {
-        const btn = document.getElementById(`batch-btn-${idx}-${n}`);
-        if (btn) {
-          btn.className = n === placeNum
-            ? 'py-1.5 rounded bg-indigo-600 border border-indigo-400 text-xs font-bold text-white'
-            : 'py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400';
-        }
-      });
-    }
-
-    async function submitBatchRace() {
-      const customDate = document.getElementById('batch-date').value;
-      const course = document.getElementById('batch-course').value.trim();
-      const matchType = document.getElementById('batch-type').value;
-      const status = document.getElementById('batch-status');
-      const btn = document.getElementById('btn-batch-submit');
-
-      const entries = Object.values(batchSelections)
-        .filter(item => item && item.place)
-        .map(item => ({
-          player: item.player,
-          team: item.team,
-          course,
-          place: item.place,
-          matchType
-        }));
-
-      if (!customDate || !course || entries.length === 0) {
-        status.textContent = "Select a date, course, and check at least one racer with a 1–8 placement.";
-        status.className = "text-xs text-rose-400";
-        status.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Saving Batch...";
-
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'logRace', teamCode: appConfig.teamCode, customDate, entries })
-        });
-        const result = await res.json();
-        if (result.status === 'success') {
-          status.textContent = `Saved ${entries.length} placements for ${course} (${customDate})!`;
-          status.className = "text-xs text-emerald-400 font-medium";
-          status.classList.remove('hidden');
-          document.getElementById('batch-course').value = '';
-          buildBatchPlayerList();
-          await loadDashboard();
-        }
-      } catch (e) {
-        status.textContent = "Error saving race batch.";
-        status.className = "text-xs text-rose-400";
-        status.classList.remove('hidden');
-      }
-
-      btn.disabled = false;
-      btn.textContent = "Save Race Batch";
-    }
-
-    function updateSquadDropdowns(squadSet) {
-      const dl = document.getElementById('squad-list');
-      const filter = document.getElementById('filter-squad');
-      const currentFilter = filter.value;
-
-      dl.innerHTML = '';
-      filter.innerHTML = '<option value="ALL">All Squads (Whole Program)</option>';
-
-      Array.from(squadSet).sort().forEach(s => {
-        const opt1 = document.createElement('option');
-        opt1.value = s;
-        dl.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = s;
-        opt2.textContent = s;
-        filter.appendChild(opt2);
-      });
-      filter.value = currentFilter || 'ALL';
-    }
-
-    function autoSelectSquad() {
-      const sel = document.getElementById('select-player');
-      const selectedOpt = sel.options[sel.selectedIndex];
-      if (selectedOpt && selectedOpt.dataset.team) {
-        document.getElementById('input-student-squad').value = selectedOpt.dataset.team;
-      }
-    }
-
-    function buildPlaceGrid() {
-      const grid = document.getElementById('place-grid');
-      for (let i = 1; i <= 8; i++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = i;
-        btn.className = 'place-btn py-2.5 rounded-lg bg-slate-900 border border-slate-600 font-bold hover:border-indigo-400 transition';
-        btn.onclick = () => {
-          selectedPlace = i;
-          document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
-          btn.classList.add('bg-indigo-600', 'border-indigo-500');
-        };
-        grid.appendChild(btn);
-      }
-    }
-
-    function switchTab(tab) {
-       document.getElementById('view-student').classList.toggle('hidden', tab !== 'student');
-       document.getElementById('view-coach').classList.toggle('hidden', tab !== 'coach');
-       document.getElementById('nav-student').className = tab === 'student' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
-       document.getElementById('nav-coach').className = tab === 'coach' ? 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-indigo-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-slate-700 text-slate-300';
-     }
-
-    function unlockStudent() {
-      const entered = document.getElementById('input-team-code').value.trim();
-      if (entered.toLowerCase() === appConfig.teamCode.toLowerCase()) {
-        localStorage.setItem('mk_team_code', appConfig.teamCode);
-        showStudentForm();
-      } else {
-        document.getElementById('gate-error').classList.remove('hidden');
-      }
-    }
-
-    function showStudentForm() {
-      document.getElementById('student-gate').classList.add('hidden');
-      document.getElementById('student-form').classList.remove('hidden');
-    }
-
-    async function submitRace() {
-      const player = document.getElementById('select-player').value;
-      const team = document.getElementById('input-student-squad').value.trim() || 'Unassigned';
-      const course = document.getElementById('input-course').value.trim();
-      const status = document.getElementById('submit-status');
-      const btn = document.getElementById('btn-submit-race');
-
-      if (!player || !course || !selectedPlace) {
-        status.textContent = "Please select your name, course, and placement.";
-        status.className = "text-center text-sm mt-3 text-rose-400";
-        status.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "Saving...";
-
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'logRace',
-            teamCode: appConfig.teamCode,
-            player, team, course,
-            place: selectedPlace,
-            matchType: currentMatchType
-          })
-        });
-        const result = await res.json();
-        if (result.status === 'success') {
-          status.textContent = `Saved: ${player} finished #${selectedPlace} on ${course}!`;
-          status.className = "text-center text-sm mt-3 text-emerald-400 font-medium";
-          status.classList.remove('hidden');
-
-          sessionReceipts.push({ player, course, place: selectedPlace, matchType: currentMatchType });
-          renderReceipts();
-
-          document.getElementById('input-course').value = '';
-          selectedPlace = null;
-          document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
-        } else {
-          status.textContent = "Authorization error. Check Team Code.";
-          status.className = "text-center text-sm mt-3 text-rose-400";
-          status.classList.remove('hidden');
-        }
-      } catch (e) {
-        status.textContent = "Error saving race. Please try again.";
-        status.className = "text-center text-sm mt-3 text-rose-400";
-      }
-
-      btn.disabled = false;
-      btn.textContent = "Submit Race";
-    }
-    function renderReceipts() {
-      const card = document.getElementById('session-receipt-card');
-      const list = document.getElementById('receipt-list');
-      const counter = document.getElementById('receipt-counter');
-      if (sessionReceipts.length === 0) { card.classList.add('hidden'); return; }
-      card.classList.remove('hidden');
-      counter.textContent = sessionReceipts.length === 6 ? '✅ Complete 6-race PlayVS game logged!' : `${sessionReceipts.length} of 6 PlayVS races logged`;
-      list.innerHTML = sessionReceipts.map((r, idx) => `
-        <div class="flex justify-between items-center bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">
-          <div><span class="text-xs font-bold text-indigo-400 mr-1.5">Race ${idx + 1}:</span><span class="text-white font-medium">${r.course}</span><span class="text-xs text-slate-400 ml-1">(${r.player})</span></div>
-          <span class="font-bold text-emerald-400">#${r.place}</span>
-        </div>`).join('');
-    }
-
-    function clearReceipts() {
-      sessionReceipts = [];
-      document.getElementById('submit-status').classList.add('hidden');
+      sessionReceipts.push({ player, course, place: selectedPlace, matchType: currentMatchType, division });
       renderReceipts();
+
+      document.getElementById('input-course').value = '';
+      selectedPlace = null;
+      document.querySelectorAll('.place-btn').forEach(b => b.classList.remove('bg-indigo-600', 'border-indigo-500'));
+    } else {
+      status.textContent = "Authorization error. Check Team Code.";
+      status.className = "text-center text-sm mt-3 text-rose-400";
+      status.classList.remove('hidden');
     }
+  } catch (e) {
+    status.textContent = "Error saving race. Please try again.";
+    status.className = "text-center text-sm mt-3 text-rose-400";
+    status.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Submit Race";
+  }
+}
 
-    function unlockCoach() {
-      const entered = document.getElementById('input-coach-pin').value.trim();
-      if (entered === appConfig.coachPin) {
-        verifiedCoachPin = entered;
-        document.getElementById('coach-gate').classList.add('hidden');
-        document.getElementById('coach-dashboard').classList.remove('hidden');
-        loadStats();
-      } else {
-        document.getElementById('pin-error').classList.remove('hidden');
-      }
-    }
+function renderReceipts() {
+  const card = document.getElementById('session-receipt-card');
+  const list = document.getElementById('receipt-list');
+  const counter = document.getElementById('receipt-counter');
+  if (sessionReceipts.length === 0) { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  counter.textContent = sessionReceipts.length === 6 ? 'Complete 6-race PlayVS game logged!' : `${sessionReceipts.length} of 6 PlayVS races logged`;
+  list.innerHTML = sessionReceipts.map((r, idx) => `
+    <div class="flex justify-between items-center bg-slate-900 px-3 py-2 rounded-lg border border-slate-700">
+      <div><span class="text-xs font-bold text-indigo-400 mr-1.5">Race ${idx + 1}:</span><span class="text-white font-medium">${r.course}</span><span class="text-xs text-slate-400 ml-1">(${r.player} • ${r.division})</span></div>
+      <span class="font-bold text-emerald-400">#${r.place}</span>
+    </div>`).join('');
+}
 
-    async function addPlayer() {
-      const nameInput = document.getElementById('new-player-name');
-      const squadInput = document.getElementById('new-player-squad');
-      const roleInput = document.getElementById('new-player-role');
-      const name = nameInput.value.trim();
-      const team = squadInput.value.trim() || 'Unassigned';
-      const role = roleInput.value;
-      if (!name) return;
+function clearReceipts() {
+  sessionReceipts = [];
+  document.getElementById('submit-status').classList.add('hidden');
+  renderReceipts();
+}
 
-      const btn = document.getElementById('btn-add-player');
-      btn.disabled = true; btn.textContent = "Adding...";
-      await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPlayer', coachPin: verifiedCoachPin, name, team, role }) });
-      appConfig.players.push({ name, team, role });
-      populatePlayersAndSquads();
-      nameInput.value = ''; btn.disabled = false; btn.textContent = "+ Add Racer";
-    }
+function buildBatchPlayerList() {
+  const container = document.getElementById('batch-player-list');
+  if (!container) return;
+  batchSelections = {};
+  const players = Array.isArray(appConfig.players) ? [...appConfig.players] : [];
+  players.sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
-    function renderRosterManager() {
-      document.getElementById('roster-table-body').innerHTML = appConfig.players.map((p, idx) => `
-        <tr class="hover:bg-slate-700/30">
-          <td class="p-3 font-medium text-white">${p.name}</td>
-          <td class="p-3"><span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-200 mr-1">${p.team}</span><span class="text-xs px-2 py-0.5 rounded ${p.role === 'Starter' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-amber-500/20 text-amber-300'}">${p.role}</span></td>
-          <td class="p-3 flex flex-wrap gap-2 items-center">
-            <input list="squad-list" id="move-squad-${idx}" value="${p.team}" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-600 text-xs text-white w-36">
-            <select id="move-role-${idx}" class="px-2 py-1 rounded bg-slate-900 border border-slate-600 text-xs text-white">
-              <option value="Starter" ${p.role === 'Starter' ? 'selected' : ''}>Starter</option>
-              <option value="Bench" ${p.role === 'Bench' ? 'selected' : ''}>Bench</option>
-            </select>
-            <button onclick="updatePlayer('${p.name.replace(/'/g, "\\'")}', ${idx})" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-bold text-white">Save</button>
-          </td>
-        </tr>`).join('') || '<tr><td colspan="3" class="p-4 text-center text-slate-400">No players added yet.</td></tr>';
-    }
+  if (players.length === 0) {
+    container.innerHTML = '<p class="text-xs text-slate-400">No active players found in your Google Sheet Players tab.</p>';
+    return;
+  }
 
-    async function updatePlayer(name, idx) {
-      const team = document.getElementById(`move-squad-${idx}`).value.trim() || 'Unassigned';
-      const role = document.getElementById(`move-role-${idx}`).value;
-      await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePlayer', coachPin: verifiedCoachPin, name, team, role }) });
-      const playerObj = appConfig.players.find(p => p.name === name);
-      if (playerObj) { playerObj.team = team; playerObj.role = role; }
-      populatePlayersAndSquads(); renderTables();
-    }
-
-    async function loadStats() {
-      const res = await fetch(`${API_URL}?action=stats`);
-      const data = await res.json();
-      allLogs = data.logs || [];
-      const allSquads = new Set(["Nighthawk Shellshockers", "Squid Squad", ...appConfig.players.map(p => p.team)]);
-      allLogs.forEach(r => { if (r[5]) allSquads.add(String(r[5]).trim()); });
-      updateSquadDropdowns(allSquads);
-      renderTables();
-    }
-
-    function getFilteredLogs() {
-      const selectedSquad = document.getElementById('filter-squad').value;
-      const selectedType = document.getElementById('filter-match-type').value;
-      return allLogs.filter(r => {
-        const rowTeam = String(r[5] || 'Unassigned').trim();
-        const rowType = String(r[6] || 'Official').trim();
-        return (selectedSquad === 'ALL' || rowTeam === selectedSquad) && (selectedType === 'ALL' || rowType === selectedType);
-      });
-    }
-
-    function fmtAvg(sum, count) {
-      if (!count) return '--';
-      const val = (sum / count).toFixed(2);
-      return count < 3 ? `${val}*` : val;
-    }
-
-    function renderTables() {
-      const selectedSquad = document.getElementById('filter-squad').value;
-      const filteredLogs = getFilteredLogs();
-      const squadBtn = document.getElementById('btn-squad-card');
-      const sbPanel = document.getElementById('starter-bench-panel');
-
-      if (selectedSquad !== 'ALL') {
-        squadBtn.classList.remove('hidden'); sbPanel.classList.remove('hidden');
-        updateStarterBenchPanel(selectedSquad, filteredLogs);
-      } else {
-        squadBtn.classList.add('hidden'); sbPanel.classList.add('hidden');
-      }
-
-      const playerStats = {}, courseStats = {};
-      filteredLogs.forEach(([time, player, course, place, pts, team]) => {
-        place = Number(place); pts = Number(pts);
-        const rosterInfo = appConfig.players.find(p => p.name === player);
-        const displayTeam = rosterInfo ? rosterInfo.team : String(team || 'Unassigned').trim();
-        const displayRole = rosterInfo ? rosterInfo.role : 'Starter';
-
-        if (!playerStats[player]) playerStats[player] = { team: displayTeam, role: displayRole, races: 0, totalPlace: 0, totalPts: 0, courses: {} };
-        playerStats[player].races++; playerStats[player].totalPlace += place; playerStats[player].totalPts += pts;
-        if (!playerStats[player].courses[course]) playerStats[player].courses[course] = { count: 0, sum: 0 };
-        playerStats[player].courses[course].count++; playerStats[player].courses[course].sum += place;
-
-        if (!courseStats[course]) courseStats[course] = { count: 0, sum: 0, racers: {} };
-        courseStats[course].count++; courseStats[course].sum += place;
-        if (!courseStats[course].racers[player]) courseStats[course].racers[player] = { count: 0, sum: 0 };
-        courseStats[course].racers[player].count++; courseStats[course].racers[player].sum += place;
-      });
-
-      const driverRows = Object.entries(playerStats).map(([name, d]) => {
-        const avgNum = d.totalPlace / d.races;
-        const trackList = Object.entries(d.courses).map(([c, cd]) => ({ course: c, count: cd.count, avg: cd.sum / cd.count }))
-          .sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avg - b.avg);
-        const best = trackList[0];
-        const bestTrack = best ? `${best.course} (${best.avg.toFixed(1)}${best.count < 3 ? '*' : ''})` : 'N/A';
-        return { name, team: d.team, role: d.role, races: d.races, avgNum, avgDisplay: fmtAvg(d.totalPlace, d.races), pts: d.totalPts, bestTrack };
-      }).sort((a, b) => a.avgNum - b.avgNum);
-
-      document.getElementById('driver-table-body').innerHTML = driverRows.map((r, idx) => `
-        <tr class="hover:bg-slate-700/40 transition">
-          <td class="p-3 font-bold text-indigo-400">#${idx + 1}</td>
-          <td class="p-3"><button onclick="openPlayerCard('${r.name.replace(/'/g, "\\'")}')" class="font-bold text-white hover:text-indigo-400 underline decoration-indigo-500/50 underline-offset-4 text-left">${r.name}</button></td>
-          <td class="p-3"><span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">${r.team}</span><span class="text-xs px-1.5 py-0.5 rounded ml-1 ${r.role === 'Starter' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-amber-500/20 text-amber-300'}">${r.role}</span></td>
-          <td class="p-3">${r.races}</td>
-          <td class="p-3 font-bold text-emerald-400">${r.avgDisplay}</td>
-          <td class="p-3">${r.pts}</td>
-          <td class="p-3 text-slate-300">${r.bestTrack}</td>
-        </tr>`).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-400">No races logged for this filter yet.</td></tr>';
-
-      const courseRows = Object.entries(courseStats).map(([course, d]) => {
-        const avgNum = d.sum / d.count;
-        let topRacer = "N/A", topAvg = 99;
-        Object.entries(d.racers).forEach(([p, pd]) => {
-          const pAvg = pd.sum / pd.count;
-          if (pAvg < topAvg) { topAvg = pAvg; topRacer = `${p} (${pAvg.toFixed(1)}${pd.count < 3 ? '*' : ''})`; }
-        });
-        return { course, count: d.count, avgNum, avgDisplay: fmtAvg(d.sum, d.count), topRacer };
-      }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
-
-      document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
-        <tr class="hover:bg-slate-700/30">
-          <td class="p-3 font-medium text-white">${c.course}</td>
-          <td class="p-3">${c.count}</td>
-          <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
-          <td class="p-3 text-slate-300">${c.topRacer}</td>
-        </tr>`).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
-    }
-
-    function updateStarterBenchPanel(squadName, logs) {
-      const starters = appConfig.players.filter(p => p.team === squadName && p.role === 'Starter').map(p => p.name);
-      const bench = appConfig.players.filter(p => p.team === squadName && p.role === 'Bench').map(p => p.name);
-      let sSum = 0, sCount = 0, bSum = 0, bCount = 0;
-      logs.forEach(([t, player, c, place]) => {
-        if (starters.includes(player)) { sSum += Number(place); sCount++; }
-        if (bench.includes(player)) { bSum += Number(place); bCount++; }
-      });
-      document.getElementById('starter-count').textContent = `${starters.length} Assigned`;
-      document.getElementById('starter-avg').textContent = fmtAvg(sSum, sCount);
-      document.getElementById('starter-sub').textContent = `${sCount} total races logged`;
-      document.getElementById('bench-count').textContent = `${bench.length} Assigned`;
-      document.getElementById('bench-avg').textContent = fmtAvg(bSum, bCount);
-      document.getElementById('bench-sub').textContent = `${bCount} total races logged`;
-    }
-
-        function openPlayerCard(playerName) {
-      document.getElementById('lineup-builder-controls').classList.add('hidden');
-      const matchType = document.getElementById('filter-match-type').value;
-      const dateStamp = getFormattedDate();
-      const pLogs = allLogs.filter(([time, player, course, place, pts, team, mType]) => {
-        const rowType = String(mType || 'Official').trim();
-        return player === playerName && (matchType === 'ALL' || rowType === matchType);
-      });
-
-      const rosterInfo = appConfig.players.find(p => p.name === playerName) || { team: 'Unassigned', role: 'Starter' };
-      const sumPlace = pLogs.reduce((acc, [time, player, course, place]) => acc + Number(place), 0);
-      const totalPts = pLogs.reduce((acc, [time, player, course, place, pts]) => acc + Number(pts), 0);
-
-      const trackMap = {};
-      pLogs.forEach(([time, player, course, place]) => {
-        if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0 };
-        trackMap[course].count++;
-        trackMap[course].sum += Number(place);
-      });
-
-      const sortedTracks = Object.entries(trackMap).map(([course, d]) => ({
-        course,
-        count: d.count,
-        avgNum: d.sum / d.count,
-        avgDisplay: fmtAvg(d.sum, d.count)
-      })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
-
-      const topTrackName = sortedTracks.at(0) ? sortedTracks.at(0).course : 'N/A';
-      currentCardTitle = `${playerName.replace(/\s+/g, '_')}_Stats_${dateStamp.replace(/[\s,]+/g, '_')}`;
-
-      document.getElementById('print-area').innerHTML = `
-        <div class="w-full space-y-6">
-          <div class="border-b border-slate-700 pb-4 flex justify-between items-start print-light">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Player Performance Report (${matchType})</span>
-                <span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span>
-              </div>
-              <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${playerName}</h2>
-              <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
-            </div>
-            <div class="text-right">
-              <div class="text-xs text-slate-400 print-text-muted">Season Avg Place</div>
-              <div class="text-3xl font-black text-emerald-400">${fmtAvg(sumPlace, pLogs.length)}</div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 text-center">
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
-              <div class="text-xs text-slate-400 print-text-muted">Races Played</div>
-              <div class="text-xl font-bold text-white print-text-dark">${pLogs.length}</div>
-            </div>
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
-              <div class="text-xs text-slate-400 print-text-muted">Total Points</div>
-              <div class="text-xl font-bold text-white print-text-dark">${totalPts}</div>
-            </div>
-            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light">
-              <div class="text-xs text-slate-400 print-text-muted">Top Track</div>
-              <div class="text-sm font-bold text-indigo-400 mt-1 leading-snug">${topTrackName}</div>
-            </div>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Individual Track Rankings</h4>
-            <table class="w-full text-left text-xs border border-slate-700 rounded-lg overflow-hidden">
-              <thead class="bg-slate-900 text-slate-400 print-light">
-                <tr><th class="p-2">Course</th><th class="p-2">Races</th><th class="p-2">Avg Place</th></tr>
-              </thead>
-              <tbody class="divide-y divide-slate-700">
-                ${sortedTracks.map(t => `
-                  <tr>
-                    <td class="p-2 font-medium text-white print-text-dark">${t.course}</td>
-                    <td class="p-2 text-slate-300 print-text-muted">${t.count}</td>
-                    <td class="p-2 font-bold text-emerald-400">${t.avgDisplay}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          </div>
-
-          <div>
-            <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Recent Race Log (Last 12)</h4>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              ${pLogs.slice(-12).reverse().map(([time, player, course, place]) => `
-                <div class="bg-slate-900 px-3 py-2 rounded border border-slate-700 flex justify-between items-center gap-2 print-light">
-                  <span class="text-slate-200 print-text-dark leading-snug">${course}</span>
-                  <span class="font-bold text-indigo-400 shrink-0">#${place}</span>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <p class="text-[11px] text-slate-400 print-text-muted">* Fewer than 3 races logged on track.</p>
+  container.innerHTML = players.map((p, idx) => {
+    const safeName = String(p.name || '').replace(/'/g, "\\'");
+    const safeTeam = String(p.team || 'Unassigned').replace(/'/g, "\\'");
+    return `
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
+        <label class="flex items-center justify-between cursor-pointer select-none">
+          <span class="flex items-center gap-2 text-sm font-bold text-white">
+            <input type="checkbox" id="batch-chk-${idx}" onchange="toggleBatchPlayer(${idx}, '${safeName}', '${safeTeam}')" class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600">
+            ${p.name}
+          </span>
+          <span class="text-[11px] text-slate-400">${p.team || 'Unassigned'} (${getTeamDivision(p.team)})</span>
+        </label>
+        <div id="batch-places-${idx}" class="hidden grid grid-cols-8 gap-1 pt-1">
+          ${Array.from({ length: 8 }, (_, n) => n + 1).map(num => `
+            <button type="button" id="batch-btn-${idx}-${num}" onclick="setBatchPlace(${idx}, ${num})"
+              class="py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400">
+              ${num}
+            </button>
+          `).join('')}
         </div>
-      `;
+      </div>`;
+  }).join('');
+}
 
-      document.getElementById('card-modal').classList.remove('hidden');
+function toggleBatchPlayer(idx, playerName, teamName) {
+  const checked = document.getElementById(`batch-chk-${idx}`).checked;
+  const placeRow = document.getElementById(`batch-places-${idx}`);
+  if (checked) {
+    batchSelections[idx] = { player: playerName, team: teamName, place: null };
+    placeRow.classList.remove('hidden');
+  } else {
+    delete batchSelections[idx];
+    placeRow.classList.add('hidden');
+    setBatchPlace(idx, null);
+  }
+}
+
+function setBatchPlace(idx, placeNum) {
+  if (batchSelections[idx]) batchSelections[idx].place = placeNum;
+  Array.from({ length: 8 }, (_, i) => i + 1).forEach(n => {
+    const btn = document.getElementById(`batch-btn-${idx}-${n}`);
+    if (btn) {
+      btn.className = n === placeNum
+        ? 'py-1.5 rounded bg-indigo-600 border border-indigo-400 text-xs font-bold text-white'
+        : 'py-1.5 rounded bg-slate-800 border border-slate-600 text-xs font-bold text-slate-300 hover:border-indigo-400';
     }
+  });
+}
 
-    function openSquadCard() {
-      const squadName = document.getElementById('filter-squad').value;
-      const squadPlayers = appConfig.players.filter(p => p.team === squadName);
-      const starters = squadPlayers.filter(p => p.role === 'Starter').map(p => p.name);
-      const bench = squadPlayers.filter(p => p.role === 'Bench').map(p => p.name);
+async function submitBatchRace() {
+  const customDate = document.getElementById('batch-date').value;
+  const course = document.getElementById('batch-course').value.trim();
+  const matchType = document.getElementById('batch-type').value;
+  const divOverride = document.getElementById('batch-division-override').value;
+  const status = document.getElementById('batch-status');
+  const btn = document.getElementById('btn-batch-submit');
 
-      gameLineups.g1 = starters.slice(0, 4);
-      if (gameLineups.g1.length === 0) gameLineups.g1 = squadPlayers.slice(0, 4).map(p => p.name);
-      const g2Default = [...bench];
-      for (const s of starters) { if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s); }
-      gameLineups.g2 = g2Default.slice(0, 4);
-      gameLineups.g3 = [...gameLineups.g1];
+  const entries = Object.values(batchSelections)
+    .filter(item => item && item.place)
+    .map(item => ({
+      player: item.player,
+      team: item.team,
+      course,
+      place: item.place,
+      matchType,
+      division: divOverride === 'AUTO' ? getTeamDivision(item.team) : divOverride
+    }));
 
-      renderLineupBuilderControls(squadPlayers);
-      renderSquadPlaybook();
-      document.getElementById('card-modal').classList.remove('hidden');
+  if (!customDate || !course || entries.length === 0) {
+    status.textContent = "Select a date, course, and check at least one racer with a 1–8 placement.";
+    status.className = "text-xs text-rose-400";
+    status.classList.remove('hidden');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Saving Batch...";
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'logRace', teamCode: appConfig.teamCode, coachPin: verifiedCoachPin, customDate, entries })
+    });
+    const result = await res.json();
+    if (result.status === 'success') {
+      status.textContent = `Saved ${entries.length} placements for ${course} (${customDate})!`;
+      status.className = "text-xs text-emerald-400 font-medium";
+      status.classList.remove('hidden');
+      document.getElementById('batch-course').value = '';
+      buildBatchPlayerList();
+      await loadStats();
+    } else {
+      status.textContent = result.message || "Error saving race batch.";
+      status.className = "text-xs text-rose-400";
+      status.classList.remove('hidden');
     }
+  } catch (e) {
+    status.textContent = "Network error saving race batch. Refresh to check sheet.";
+    status.className = "text-xs text-rose-400";
+    status.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Race Batch";
+  }
+}
 
-    function renderLineupBuilderControls(squadPlayers) {
-      document.getElementById('lineup-builder-controls').classList.remove('hidden');
-      const games = [
-        { key: 'g1', label: 'Game 1', color: 'text-indigo-400' },
-        { key: 'g2', label: 'Game 2', color: 'text-amber-400' },
-        { key: 'g3', label: 'Game 3 (Tiebreaker)', color: 'text-emerald-400' }
-      ];
-      document.getElementById('lineup-builder-grid').innerHTML = games.map(g => `
-        <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-          <div class="font-bold ${g.color} mb-2">${g.label} (${gameLineups[g.key].length}/4)</div>
-          <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">${squadPlayers.map(p => `
-            <label class="flex items-center justify-between gap-2 cursor-pointer hover:bg-slate-700/40 px-1.5 py-1 rounded">
-              <span class="text-slate-200 truncate">${p.name}</span>
-              <input type="checkbox" ${gameLineups[g.key].includes(p.name) ? 'checked' : ''} onchange="toggleGamePlayer('${g.key}', '${p.name.replace(/'/g, "\\'")}', this)" class="accent-indigo-500">
-            </label>`).join('')}</div>
-        </div>`).join('');
-    }
+function unlockCoach() {
+  const entered = document.getElementById('input-coach-pin').value.trim();
+  if (entered === appConfig.coachPin) {
+    verifiedCoachPin = entered;
+    document.getElementById('coach-gate').classList.add('hidden');
+    document.getElementById('coach-dashboard').classList.remove('hidden');
+    loadStats();
+  } else {
+    document.getElementById('pin-error').classList.remove('hidden');
+  }
+}
 
-    function toggleGamePlayer(gameKey, playerName, checkbox) {
-      const list = gameLineups[gameKey];
-      if (checkbox.checked) {
-        if (list.length >= 4) { checkbox.checked = false; alert('PlayVS lobbies allow a maximum of 4 active racers per game.'); return; }
-        list.push(playerName);
-      } else {
-        gameLineups[gameKey] = list.filter(n => n !== playerName);
+function updateSquadDropdowns(squadSet) {
+  const dl = document.getElementById('squad-list');
+  const filter = document.getElementById('filter-squad');
+  const currentFilter = filter.value;
+
+  dl.innerHTML = '';
+  filter.innerHTML = '<option value="ALL">All Squads (Whole Program)</option>';
+
+  Array.from(squadSet).sort().forEach(s => {
+    const opt1 = document.createElement('option');
+    opt1.value = s;
+    dl.appendChild(opt1);
+
+    const opt2 = document.createElement('option');
+    opt2.value = s;
+    opt2.textContent = s;
+    filter.appendChild(opt2);
+  });
+  filter.value = currentFilter || 'ALL';
+}
+
+function renderSquadDivisionSettings(squadSet) {
+  const container = document.getElementById('squad-division-settings');
+  if (!container) return;
+  container.innerHTML = '';
+  const label = document.createElement('span');
+  label.className = 'text-xs font-bold uppercase tracking-wider text-slate-400';
+  label.textContent = 'Squad League Tiers:';
+  container.appendChild(label);
+
+  const squads = Array.from(squadSet).filter(s => s && s !== 'Unassigned').sort();
+  squads.forEach(sq => {
+    const currentDiv = getTeamDivision(sq);
+    const wrap = document.createElement('div');
+    wrap.className = 'flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'font-semibold text-white';
+    nameSpan.textContent = `${sq}:`;
+
+    const sel = document.createElement('select');
+    sel.className = 'bg-slate-900 text-slate-200 border border-slate-600 rounded px-1.5 py-0.5 text-xs';
+    ['Competitive', 'Recreational'].forEach(optVal => {
+      const opt = document.createElement('option');
+      opt.value = optVal;
+      opt.textContent = optVal;
+      if (currentDiv === optVal) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => setTeamDivision(sq, sel.value);
+
+    wrap.appendChild(nameSpan);
+    wrap.appendChild(sel);
+    container.appendChild(wrap);
+  });
+}
+
+async function setTeamDivision(squadName, division) {
+  appConfig.teamDivisions[squadName] = division;
+  buildBatchPlayerList();
+  updateStudentDivisionBadge();
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'saveTeamDivisions', coachPin: verifiedCoachPin, teamDivisions: appConfig.teamDivisions })
+  });
+}
+async function addPlayer() {
+  const nameInput = document.getElementById('new-player-name');
+  const squadInput = document.getElementById('new-player-squad');
+  const roleInput = document.getElementById('new-player-role');
+  const name = nameInput.value.trim();
+  const team = squadInput.value.trim() || 'Unassigned';
+  const role = roleInput.value;
+  if (!name) return;
+
+  const btn = document.getElementById('btn-add-player');
+  btn.disabled = true; btn.textContent = "Adding...";
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'addPlayer', coachPin: verifiedCoachPin, name, team, role })
+  });
+  appConfig.players.push({ name, team, role });
+  populatePlayersAndSquads();
+  nameInput.value = ''; btn.disabled = false; btn.textContent = "+ Add Racer";
+}
+
+function renderRosterManager() {
+  const tbody = document.getElementById('roster-table-body');
+  tbody.innerHTML = '';
+  if (!appConfig.players.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">No players added yet.</td></tr>';
+    return;
+  }
+  appConfig.players.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-700/30';
+    const roleBadge = p.role === 'Starter' ? 'bg-indigo-500/30 text-indigo-300' : 'bg-amber-500/20 text-amber-300';
+    tr.innerHTML = `
+      <td class="p-3 font-medium text-white">${p.name}</td>
+      <td class="p-3"><span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-200 mr-1">${p.team}</span><span class="text-xs px-2 py-0.5 rounded ${roleBadge}">${p.role}</span></td>
+      <td class="p-3 flex flex-wrap gap-2 items-center">
+        <input list="squad-list" id="move-squad-${idx}" value="${p.team}" class="px-2.5 py-1 rounded bg-slate-900 border border-slate-600 text-xs text-white w-36">
+      </td>`;
+    const actionCell = tr.lastElementChild;
+    const roleSel = document.createElement('select');
+    roleSel.id = `move-role-${idx}`;
+    roleSel.className = 'px-2 py-1 rounded bg-slate-900 border border-slate-600 text-xs text-white';
+    ['Starter', 'Bench'].forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      if (p.role === r) opt.selected = true;
+      roleSel.appendChild(opt);
+    });
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-bold text-white';
+    saveBtn.textContent = 'Save';
+    saveBtn.onclick = () => updatePlayer(p.name, idx);
+    actionCell.appendChild(roleSel);
+    actionCell.appendChild(saveBtn);
+    tbody.appendChild(tr);
+  });
+}
+
+async function updatePlayer(name, idx) {
+  const team = document.getElementById(`move-squad-${idx}`).value.trim() || 'Unassigned';
+  const role = document.getElementById(`move-role-${idx}`).value;
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'updatePlayer', coachPin: verifiedCoachPin, name, team, role })
+  });
+  const playerObj = appConfig.players.find(p => p.name === name);
+  if (playerObj) { playerObj.team = team; playerObj.role = role; }
+  populatePlayersAndSquads(); renderTables();
+}
+
+function getChronologicalLogs(logsArray) {
+  return [...logsArray].sort((a, b) => {
+    const tA = new Date(a[0]).getTime() || 0;
+    const tB = new Date(b[0]).getTime() || 0;
+    if (tA !== tB) return tA - tB;
+    return (Number(a[8]) || 0) - (Number(b[8]) || 0);
+  });
+}
+
+function calculatePlayerTrend(pLogs) {
+  if (pLogs.length < 6) return { last12Avg: null, delta: 0, badgeHTML: '' };
+  const seasonAvg = pLogs.reduce((acc, r) => acc + Number(r[3]), 0) / pLogs.length;
+  const recent = pLogs.slice(-12);
+  const last12Avg = recent.reduce((acc, r) => acc + Number(r[3]), 0) / recent.length;
+  const delta = seasonAvg - last12Avg; // Positive means lower (better) placement recently
+  let badgeHTML = '';
+  if (delta >= 0.75) {
+    badgeHTML = `<span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Trending Up</span>`;
+  } else if (delta <= -0.75) {
+    badgeHTML = `<span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Cooling Off</span>`;
+  }
+  return { last12Avg, delta, badgeHTML };
+}
+async function loadStats() {
+  const res = await fetch(`${API_URL}?action=stats`);
+  const data = await res.json();
+  allLogs = getChronologicalLogs(data.logs || []);
+  const allSquads = new Set(["Nighthawk Shellshockers", "Squid Squad", ...appConfig.players.map(p => p.team)]);
+  allLogs.forEach(r => { if (r) allSquads.add(String(r).trim()); });
+  updateSquadDropdowns(allSquads);
+  renderSquadDivisionSettings(allSquads);
+  renderTables();
+}
+
+function getFilteredLogs() {
+  const selectedSquad = document.getElementById('filter-squad').value;
+  const selectedType = document.getElementById('filter-match-type').value;
+  const selectedDiv = document.getElementById('filter-division').value;
+  return allLogs.filter(r => {
+    const rowTeam = String(r || 'Unassigned').trim();
+    const rowType = String(r || 'Official').trim();
+    const rowDiv = String(r || getTeamDivision(rowTeam)).trim();
+    return (selectedSquad === 'ALL' || rowTeam === selectedSquad) &&
+           (selectedType === 'ALL' || rowType === selectedType) &&
+           (selectedDiv === 'ALL' || rowDiv === selectedDiv);
+  });
+}
+
+function fmtAvg(sum, count) {
+  if (!count) return '--';
+  const val = (sum / count).toFixed(2);
+  return count < 3 ? `${val}*` : val;
+}
+
+function renderTables() {
+  const selectedSquad = document.getElementById('filter-squad').value;
+  const filteredLogs = getFilteredLogs();
+  const squadBtn = document.getElementById('btn-squad-card');
+  const sbPanel = document.getElementById('starter-bench-panel');
+
+  if (selectedSquad !== 'ALL') {
+    squadBtn.classList.remove('hidden'); sbPanel.classList.remove('hidden');
+    updateStarterBenchPanel(selectedSquad, filteredLogs);
+  } else {
+    squadBtn.classList.add('hidden'); sbPanel.classList.add('hidden');
+  }
+
+  const playerStats = {}, courseStats = {}, styleStats = {};
+  filteredLogs.forEach(r => {
+    const [time, player, course, rawPlace, rawPts, team] = r;
+    const place = Number(rawPlace), pts = Number(rawPts);
+    const rosterInfo = appConfig.players.find(p => p.name === player);
+    const displayTeam = rosterInfo ? rosterInfo.team : String(team || 'Unassigned').trim();
+    const displayRole = rosterInfo ? rosterInfo.role : 'Starter';
+
+    if (!playerStats[player]) playerStats[player] = { team: displayTeam, role: displayRole, logs: [], races: 0, totalPlace: 0, totalPts: 0, courses: {} };
+    playerStats[player].logs.push(r);
+    playerStats[player].races++; playerStats[player].totalPlace += place; playerStats[player].totalPts += pts;
+    if (!playerStats[player].courses[course]) playerStats[player].courses[course] = { count: 0, sum: 0 };
+    playerStats[player].courses[course].count++; playerStats[player].courses[course].sum += place;
+
+    if (!courseStats[course]) courseStats[course] = { count: 0, sum: 0, racers: {} };
+    courseStats[course].count++; courseStats[course].sum += place;
+    if (!courseStats[course].racers[player]) courseStats[course].racers[player] = { count: 0, sum: 0 };
+    courseStats[course].racers[player].count++; courseStats[course].racers[player].sum += place;
+
+    const style = TRACK_STYLES[course] || 'General';
+    if (!styleStats[style]) styleStats[style] = { count: 0, sum: 0 };
+    styleStats[style].count++; styleStats[style].sum += place;
+  });
+
+  const driverRows = Object.entries(playerStats).map(([name, d]) => {
+    const avgNum = d.totalPlace / d.races;
+    const trend = calculatePlayerTrend(d.logs);
+    const trackList = Object.entries(d.courses).map(([c, cd]) => ({ course: c, count: cd.count, avg: cd.sum / cd.count }))
+      .sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avg - b.avg);
+    const best = trackList[0];
+    const bestTrack = best ? `${best.course} (${best.avg.toFixed(1)}${best.count < 3 ? '*' : ''})` : 'N/A';
+    return {
+      name, team: d.team, role: d.role, races: d.races, avgNum,
+      avgDisplay: fmtAvg(d.totalPlace, d.races),
+      last12Display: trend.last12Avg ? trend.last12Avg.toFixed(2) : '--',
+      badgeHTML: trend.badgeHTML,
+      pts: d.totalPts, bestTrack
+    };
+  }).sort((a, b) => a.avgNum - b.avgNum);
+
+  document.getElementById('driver-table-body').innerHTML = driverRows.map((r, idx) => `
+    <tr class="hover:bg-slate-700/40 transition">
+      <td class="p-3 font-bold text-indigo-400">#${idx + 1}</td>
+      <td class="p-3"><button onclick="openPlayerCard('${r.name.replace(/'/g, "\\'")}')" class="font-bold text-white hover:text-indigo-400 underline decoration-indigo-500/50 underline-offset-4 text-left">${r.name}</button>${r.badgeHTML}</td>
+      <td class="p-3"><span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">${r.team}</span><span class="text-xs px-1.5 py-0.5 rounded ml-1 ${r.role === 'Starter' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-amber-500/20 text-amber-300'}">${r.role}</span></td>
+      <td class="p-3">${r.races}</td>
+      <td class="p-3 font-bold text-emerald-400">${r.avgDisplay}</td>
+      <td class="p-3 font-semibold text-slate-200">${r.last12Display}</td>
+      <td class="p-3">${r.pts}</td>
+      <td class="p-3 text-slate-300">${r.bestTrack}</td>
+    </tr>`).join('') || '<tr><td colspan="8" class="p-4 text-center text-slate-400">No races logged for this filter yet.</td></tr>';
+
+  renderCourseAndPracticeTables(courseStats, styleStats);
+}
+function renderCourseAndPracticeTables(courseStats, styleStats) {
+  const courseRows = Object.entries(courseStats).map(([course, d]) => {
+    const avgNum = d.sum / d.count;
+    let topRacer = "N/A", topAvg = 99;
+    Object.entries(d.racers).forEach(([p, pd]) => {
+      const pAvg = pd.sum / pd.count;
+      if (pAvg < topAvg) { topAvg = pAvg; topRacer = `${p} (${pAvg.toFixed(1)}${pd.count < 3 ? '*' : ''})`; }
+    });
+    return { course, style: TRACK_STYLES[course] || 'General', count: d.count, avgNum, avgDisplay: fmtAvg(d.sum, d.count), topRacer };
+  }).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
+
+  document.getElementById('course-table-body').innerHTML = courseRows.map(c => `
+    <tr class="hover:bg-slate-700/30">
+      <td class="p-3 font-medium text-white">${c.course}</td>
+      <td class="p-3"><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300">${c.style}</span></td>
+      <td class="p-3">${c.count}</td>
+      <td class="p-3 font-bold text-emerald-400">${c.avgDisplay}</td>
+      <td class="p-3 text-slate-300">${c.topRacer}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">No course data yet.</td></tr>';
+
+  const sugBox = document.getElementById('track-practice-suggestions');
+  const styleEntries = Object.entries(styleStats).map(([style, d]) => ({ style, avg: d.sum / d.count, count: d.count })).sort((a, b) => a.avg - b.avg);
+  if (styleEntries.length > 0) {
+    const bestStyle = styleEntries;
+    const unplayed = COURSES.filter(c => TRACK_STYLES[c] === bestStyle.style && (!courseStats[c] || courseStats[c].count === 0));
+    const picks = unplayed.slice(0, 4).join(', ') || 'All tracks in this style played!';
+    sugBox.classList.remove('hidden');
+    sugBox.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div><span class="font-bold text-indigo-400 uppercase tracking-wider mr-1.5">Practice Lab Suggestion:</span>
+      <span class="text-slate-300">Your strongest style is <strong class="text-white">${bestStyle.style}</strong> (${bestStyle.avg.toFixed(2)} avg). Unplayed tracks to test in scrimmages: <strong class="text-emerald-400">${picks}</strong></span></div>
+    </div>`;
+  } else {
+    sugBox.classList.add('hidden');
+  }
+}
+
+function updateStarterBenchPanel(squadName, logs) {
+  const starters = appConfig.players.filter(p => p.team === squadName && p.role === 'Starter').map(p => p.name);
+  const bench = appConfig.players.filter(p => p.team === squadName && p.role === 'Bench').map(p => p.name);
+  let sSum = 0, sCount = 0, bSum = 0, bCount = 0;
+  logs.forEach(([t, player, c, place]) => {
+    if (starters.includes(player)) { sSum += Number(place); sCount++; }
+    if (bench.includes(player)) { bSum += Number(place); bCount++; }
+  });
+  document.getElementById('starter-count').textContent = `${starters.length} Assigned`;
+  document.getElementById('starter-avg').textContent = fmtAvg(sSum, sCount);
+  document.getElementById('starter-sub').textContent = `${sCount} total races logged`;
+  document.getElementById('bench-count').textContent = `${bench.length} Assigned`;
+  document.getElementById('bench-avg').textContent = fmtAvg(bSum, bCount);
+  document.getElementById('bench-sub').textContent = `${bCount} total races logged`;
+}
+
+function openPlayerCard(playerName) {
+  document.getElementById('lineup-builder-controls').classList.add('hidden');
+  const matchType = document.getElementById('filter-match-type').value;
+  const selectedDiv = document.getElementById('filter-division').value;
+  const dateStamp = getFormattedDate();
+  const pLogs = allLogs.filter(r => {
+    const [time, player, course, place, pts, team, mType, div] = r;
+    const rowType = String(mType || 'Official').trim();
+    const rowDiv = String(div || getTeamDivision(team)).trim();
+    return player === playerName && (matchType === 'ALL' || rowType === matchType) && (selectedDiv === 'ALL' || rowDiv === selectedDiv);
+  });
+
+  const rosterInfo = appConfig.players.find(p => p.name === playerName) || { team: 'Unassigned', role: 'Starter' };
+  const sumPlace = pLogs.reduce((acc, r) => acc + Number(r), 0);
+  const totalPts = pLogs.reduce((acc, r) => acc + Number(r), 0);
+  const trend = calculatePlayerTrend(pLogs);
+
+  const trackMap = {};
+  pLogs.forEach(([time, player, course, place]) => {
+    if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0 };
+    trackMap[course].count++; trackMap[course].sum += Number(place);
+  });
+
+  const sortedTracks = Object.entries(trackMap).map(([course, d]) => ({
+    course, count: d.count, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
+  })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum);
+
+  const topTrackName = sortedTracks ? sortedTracks.course : 'N/A';
+  currentCardTitle = `${playerName.replace(/\s+/g, '_')}_Stats_${dateStamp.replace(/[\s,]+/g, '_')}`;
+
+  document.getElementById('print-area').innerHTML = `
+    <div class="w-full space-y-6">
+      <div class="border-b border-slate-700 pb-4 flex justify-between items-start print-light">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Player Performance Report (${matchType})</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span>
+            ${trend.badgeHTML}
+          </div>
+          <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${playerName}</h2>
+          <p class="text-sm text-slate-400 print-text-muted mt-0.5">${rosterInfo.team} • ${rosterInfo.role}</p>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-slate-400 print-text-muted">Season Avg Place</div>
+          <div class="text-3xl font-black text-emerald-400">${fmtAvg(sumPlace, pLogs.length)}</div>
+          ${trend.last12Avg ? `<div class="text-xs text-slate-300 mt-0.5">Last 12 Avg: <strong>${trend.last12Avg.toFixed(2)}</strong></div>` : ''}
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Races Played</div><div class="text-xl font-bold text-white print-text-dark">${pLogs.length}</div></div>
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Total Points</div><div class="text-xl font-bold text-white print-text-dark">${totalPts}</div></div>
+        <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 print-light"><div class="text-xs text-slate-400 print-text-muted">Top Track</div><div class="text-sm font-bold text-indigo-400 mt-1 leading-snug">${topTrackName}</div></div>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Individual Track Rankings</h4>
+        <table class="w-full text-left text-xs border border-slate-700 rounded-lg overflow-hidden">
+          <thead class="bg-slate-900 text-slate-400 print-light"><tr><th class="p-2">Course</th><th class="p-2">Races</th><th class="p-2">Avg Place</th></tr></thead>
+          <tbody class="divide-y divide-slate-700">${sortedTracks.map(t => `<tr><td class="p-2 font-medium text-white print-text-dark">${t.course}</td><td class="p-2 text-slate-300 print-text-muted">${t.count}</td><td class="p-2 font-bold text-emerald-400">${t.avgDisplay}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div>
+        <h4 class="font-bold text-sm uppercase tracking-wider text-slate-300 print-text-dark mb-2">Recent Race Log (Chronological Last 12)</h4>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          ${pLogs.slice(-12).reverse().map(([time, player, course, place]) => {
+            const dStr = time ? new Date(time).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' }) : '';
+            return `<div class="bg-slate-900 px-3 py-2 rounded border border-slate-700 flex justify-between items-center gap-2 print-light"><span class="text-slate-200 print-text-dark leading-snug"><span class="text-slate-400 mr-1">${dStr}</span>${course}</span><span class="font-bold text-indigo-400 shrink-0">#${place}</span></div>`;
+          }).join('')}
+        </div>
+      </div>
+      <p class="text-[11px] text-slate-400 print-text-muted">* Fewer than 3 races logged on track.</p>
+    </div>`;
+  document.getElementById('card-modal').classList.remove('hidden');
+}
+function openSquadCard() {
+  const squadName = document.getElementById('filter-squad').value;
+  const squadPlayers = appConfig.players.filter(p => p.team === squadName);
+  const starters = squadPlayers.filter(p => p.role === 'Starter').map(p => p.name);
+  const bench = squadPlayers.filter(p => p.role === 'Bench').map(p => p.name);
+
+  gameLineups.g1 = starters.slice(0, 4);
+  if (gameLineups.g1.length === 0) gameLineups.g1 = squadPlayers.slice(0, 4).map(p => p.name);
+  const g2Default = [...bench];
+  for (const s of starters) { if (g2Default.length < 4 && !g2Default.includes(s)) g2Default.push(s); }
+  gameLineups.g2 = g2Default.slice(0, 4);
+  gameLineups.g3 = [...gameLineups.g1];
+
+  renderInFormSuggestions(squadPlayers);
+  renderLineupBuilderControls(squadPlayers);
+  renderSquadPlaybook();
+  document.getElementById('card-modal').classList.remove('hidden');
+}
+
+function renderInFormSuggestions(squadPlayers) {
+  const box = document.getElementById('in-form-suggestions');
+  const logs = getFilteredLogs();
+  const scored = squadPlayers.map(p => {
+    const pLogs = logs.filter(r => r === p.name);
+    const recent = pLogs.slice(-12);
+    const recentAvg = recent.length ? recent.reduce((a, r) => a + Number(r), 0) / recent.length : 99;
+    const trend = calculatePlayerTrend(pLogs);
+    return { name: p.name, role: p.role, recentAvg, count: recent.length, badgeHTML: trend.badgeHTML };
+  }).filter(x => x.count > 0).sort((a, b) => a.recentAvg - b.recentAvg);
+
+  if (scored.length === 0) {
+    box.innerHTML = '<span class="text-slate-400">Log races for this squad to unlock In-Form lineup suggestions.</span>';
+    return;
+  }
+  const top4 = scored.slice(0, 4).map(s => `<span class="inline-flex items-center bg-slate-900 px-2 py-1 rounded border border-slate-700 text-white font-semibold">${s.name} <span class="text-emerald-400 ml-1">(${s.recentAvg.toFixed(1)})</span>${s.badgeHTML}</span>`).join(' ');
+  box.innerHTML = `<div class="flex flex-wrap items-center gap-2"><span class="font-bold uppercase tracking-wider text-emerald-400">In-Form Top 4 (Last 12):</span> ${top4}</div>`;
+}
+
+function renderLineupBuilderControls(squadPlayers) {
+  document.getElementById('lineup-builder-controls').classList.remove('hidden');
+  const games = [
+    { key: 'g1', label: 'Game 1', color: 'text-indigo-400' },
+    { key: 'g2', label: 'Game 2', color: 'text-amber-400' },
+    { key: 'g3', label: 'Game 3 (Tiebreaker)', color: 'text-emerald-400' }
+  ];
+  document.getElementById('lineup-builder-grid').innerHTML = games.map(g => `
+    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+      <div class="font-bold ${g.color} mb-2">${g.label} (${gameLineups[g.key].length}/4)</div>
+      <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">${squadPlayers.map(p => `
+        <label class="flex items-center justify-between gap-2 cursor-pointer hover:bg-slate-700/40 px-1.5 py-1 rounded">
+          <span class="text-slate-200 truncate">${p.name}</span>
+          <input type="checkbox" ${gameLineups[g.key].includes(p.name) ? 'checked' : ''} onchange="toggleGamePlayer('${g.key}', '${p.name.replace(/'/g, "\\'")}', this)" class="accent-indigo-500">
+        </label>`).join('')}</div>
+    </div>`).join('');
+}
+
+function toggleGamePlayer(gameKey, playerName, checkbox) {
+  const list = gameLineups[gameKey];
+  if (checkbox.checked) {
+    if (list.length >= 4) { checkbox.checked = false; alert('PlayVS lobbies allow a maximum of 4 active racers per game.'); return; }
+    list.push(playerName);
+  } else {
+    gameLineups[gameKey] = list.filter(n => n !== playerName);
+  }
+  const squadPlayers = appConfig.players.filter(p => p.team === document.getElementById('filter-squad').value);
+  renderLineupBuilderControls(squadPlayers); renderSquadPlaybook();
+}
+
+function renderSquadPlaybook() {
+  const squadName = document.getElementById('filter-squad').value;
+  const matchType = document.getElementById('filter-match-type').value;
+  const dateStamp = getFormattedDate();
+  const logs = getFilteredLogs();
+
+  const getPlayerSummary = (playerName) => {
+    const pLogs = logs.filter(([time, player]) => player === playerName);
+    const sum = pLogs.reduce((a, [time, player, course, place]) => a + Number(place), 0);
+    const trend = calculatePlayerTrend(pLogs);
+    const courses = {};
+    pLogs.forEach(([time, player, course, place]) => {
+      if (!courses[course]) courses[course] = { c: 0, s: 0 };
+      courses[course].c++; courses[course].s += Number(place);
+    });
+    const best = Object.entries(courses)
+      .map(([k, v]) => ({ k, c: v.c, avg: v.s / v.c }))
+      .sort((a, b) => (a.c >= 3 ? 0 : 1) - (b.c >= 3 ? 0 : 1) || a.avg - b.avg);
+    return {
+      races: pLogs.length,
+      avg: fmtAvg(sum, pLogs.length),
+      last12: trend.last12Avg ? trend.last12Avg.toFixed(1) : '--',
+      best: best ? `${best.k} (${best.avg.toFixed(1)}${best.c < 3 ? '*' : ''})` : 'N/A'
+    };
+  };
+  const getTopTracksForLineup = (rosterNames) => {
+    const trackMap = {};
+    logs.forEach(([t, player, course, place]) => {
+      if (rosterNames.includes(player)) {
+        if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0, racers: new Set() };
+        trackMap[course].count++; trackMap[course].sum += Number(place); trackMap[course].racers.add(player);
       }
-      const squadPlayers = appConfig.players.filter(p => p.team === document.getElementById('filter-squad').value);
-      renderLineupBuilderControls(squadPlayers); renderSquadPlaybook();
-    }
+    });
+    return Object.entries(trackMap).map(([course, d]) => ({
+      course, count: d.count, racerCount: d.racers.size, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
+    })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum).slice(0, 4);
+  };
 
-    function renderSquadPlaybook() {
-      const squadName = document.getElementById('filter-squad').value;
-      const matchType = document.getElementById('filter-match-type').value;
-      const dateStamp = getFormattedDate();
-      const logs = getFilteredLogs();
+  const g2In = gameLineups.g2.filter(p => !gameLineups.g1.includes(p)), g2Out = gameLineups.g1.filter(p => !gameLineups.g2.includes(p));
+  const g2SubNote = (g2In.length || g2Out.length) ? `Subs: ${g2In.length ? 'IN ' + g2In.join(', ') : ''} ${g2Out.length ? '| OUT ' + g2Out.join(', ') : ''}` : 'Same 4 racers as Game 1';
+  const g3In = gameLineups.g3.filter(p => !gameLineups.g2.includes(p)), g3Out = gameLineups.g2.filter(p => !gameLineups.g3.includes(p));
+  const g3SubNote = (g3In.length || g3Out.length) ? `Subs: ${g3In.length ? 'IN ' + g3In.join(', ') : ''} ${g3Out.length ? '| OUT ' + g3Out.join(', ') : ''}` : 'Same 4 racers as Game 2';
 
-            const getPlayerSummary = (playerName) => {
-        const pLogs = logs.filter(([time, player]) => player === playerName);
-        const sum = pLogs.reduce((a, [time, player, course, place]) => a + Number(place), 0);
-        const courses = {};
-        pLogs.forEach(([time, player, course, place]) => {
-          if (!courses[course]) courses[course] = { c: 0, s: 0 };
-          courses[course].c++;
-          courses[course].s += Number(place);
-        });
-        const best = Object.entries(courses)
-          .map(([k, v]) => ({ k, c: v.c, avg: v.s / v.c }))
-          .sort((a, b) => (a.c >= 3 ? 0 : 1) - (b.c >= 3 ? 0 : 1) || a.avg - b.avg)[0];
-        return {
-          races: pLogs.length,
-          avg: fmtAvg(sum, pLogs.length),
-       best: best ? `${best.k} (${best.avg.toFixed(1)}${best.c < 3 ? '*' : ''})` : 'N/A'
-        };
-     };
+  const buildGameBlock = (title, badgeColor, subNote, rosterNames) => {
+    const topTracks = getTopTracksForLineup(rosterNames);
+    return `
+      <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 print-light space-y-3">
+        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-2 print-light">
+          <div><h4 class="font-bold text-sm uppercase tracking-wider ${badgeColor}">${title}</h4><p class="text-xs text-slate-400 print-text-muted">${subNote}</p></div>
+          <span class="text-xs font-bold text-slate-300 print-text-dark">${rosterNames.length} Racers Active</span>
+        </div>
+        <table class="w-full text-left text-xs">
+          <thead class="text-slate-400 print-text-muted border-b border-slate-700/70"><tr><th class="py-1.5">Racer</th><th class="py-1.5">Races</th><th class="py-1.5">Season Avg</th><th class="py-1.5">Last 12</th><th class="py-1.5">Top Track</th></tr></thead>
+          <tbody class="divide-y divide-slate-800">${rosterNames.map(name => { const st = getPlayerSummary(name); return `<tr><td class="py-1.5 font-bold text-white print-text-dark">${name}</td><td class="py-1.5 text-slate-300 print-text-muted">${st.races}</td><td class="py-1.5 font-bold text-emerald-400">${st.avg}</td><td class="py-1.5 font-semibold text-indigo-300">${st.last12}</td><td class="py-1.5 text-slate-300 print-text-muted">${st.best}</td></tr>`; }).join('') || '<tr><td colspan="5" class="py-2 text-slate-400">No racers selected.</td></tr>'}</tbody>
+        </table>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 print-text-muted mb-1.5">Recommended Track Picks</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">${topTracks.map((t, i) => `<div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700 print-light"><div class="text-[10px] font-bold text-indigo-400">PICK #${i + 1} (${t.count}r / ${t.racerCount}p)</div><div class="font-bold text-white print-text-dark leading-snug my-0.5">${t.course}</div><div class="text-emerald-400 font-extrabold">Avg: ${t.avgDisplay}</div></div>`).join('') || '<span class="text-xs text-slate-400 col-span-4">Log races to generate picks.</span>'}</div>
+        </div>
+      </div>`;
+  };
 
-      const getTopTracksForLineup = (rosterNames) => {
-        const trackMap = {};
-        logs.forEach(([t, player, course, place]) => {
-          if (rosterNames.includes(player)) {
-            if (!trackMap[course]) trackMap[course] = { count: 0, sum: 0, racers: new Set() };
-            trackMap[course].count++; trackMap[course].sum += Number(place); trackMap[course].racers.add(player);
-          }
-        });
-        return Object.entries(trackMap).map(([course, d]) => ({
-          course, count: d.count, racerCount: d.racers.size, avgNum: d.sum / d.count, avgDisplay: fmtAvg(d.sum, d.count)
-        })).sort((a, b) => (a.count >= 3 ? 0 : 1) - (b.count >= 3 ? 0 : 1) || a.avgNum - b.avgNum).slice(0, 4);
-      };
+  currentCardTitle = `${squadName.replace(/\s+/g, '_')}_Playbook_${dateStamp.replace(/[\s,]+/g, '_')}`;
+  document.getElementById('print-area').innerHTML = `
+    <div class="border-b border-slate-700 pb-3 flex justify-between items-start print-light">
+      <div>
+        <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Match Lineup & Track Guide (${matchType})</span><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span></div>
+        <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${squadName}</h2>
+      </div>
+      <div class="text-right text-xs text-slate-400 print-text-muted"><div>4v4 Format</div><div>6 Races per Game</div></div>
+    </div>
+    <div class="space-y-4">
+      ${buildGameBlock('Game 1', 'text-indigo-400', 'Opening Lineup', gameLineups.g1)}
+      ${buildGameBlock('Game 2', 'text-amber-400', g2SubNote, gameLineups.g2)}
+      ${buildGameBlock('Game 3 (If Tied 1–1)', 'text-emerald-400', g3SubNote, gameLineups.g3)}
+    </div>
+    <p class="text-[11px] text-slate-400 print-text-muted">* Fewer than 3 races logged on track.</p>`;
+}
 
-      const g2In = gameLineups.g2.filter(p => !gameLineups.g1.includes(p)), g2Out = gameLineups.g1.filter(p => !gameLineups.g2.includes(p));
-      const g2SubNote = (g2In.length || g2Out.length) ? `Subs: ${g2In.length ? 'IN ' + g2In.join(', ') : ''} ${g2Out.length ? '| OUT ' + g2Out.join(', ') : ''}` : 'Same 4 racers as Game 1';
-      const g3In = gameLineups.g3.filter(p => !gameLineups.g2.includes(p)), g3Out = gameLineups.g2.filter(p => !gameLineups.g3.includes(p));
-      const g3SubNote = (g3In.length || g3Out.length) ? `Subs: ${g3In.length ? 'IN ' + g3In.join(', ') : ''} ${g3Out.length ? '| OUT ' + g3Out.join(', ') : ''}` : 'Same 4 racers as Game 2';
+function closeModal() { document.getElementById('card-modal').classList.add('hidden'); }
 
-      const buildGameBlock = (title, badgeColor, subNote, rosterNames) => {
-        const topTracks = getTopTracksForLineup(rosterNames);
-        return `
-          <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 print-light space-y-3">
-            <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-700 pb-2 print-light">
-              <div><h4 class="font-bold text-sm uppercase tracking-wider ${badgeColor}">${title}</h4><p class="text-xs text-slate-400 print-text-muted">${subNote}</p></div>
-              <span class="text-xs font-bold text-slate-300 print-text-dark">${rosterNames.length} Racers Active</span>
-            </div>
-            <table class="w-full text-left text-xs">
-              <thead class="text-slate-400 print-text-muted border-b border-slate-700/70"><tr><th class="py-1.5">Racer</th><th class="py-1.5">Races Played</th><th class="py-1.5">Avg Place</th><th class="py-1.5">Individual Top Track</th></tr></thead>
-              <tbody class="divide-y divide-slate-800">${rosterNames.map(name => { const st = getPlayerSummary(name); return `<tr><td class="py-1.5 font-bold text-white print-text-dark">${name}</td><td class="py-1.5 text-slate-300 print-text-muted">${st.races}</td><td class="py-1.5 font-bold text-emerald-400">${st.avg}</td><td class="py-1.5 text-slate-300 print-text-muted">${st.best}</td></tr>`; }).join('') || '<tr><td colspan="4" class="py-2 text-slate-400">No racers selected.</td></tr>'}</tbody>
-            </table>
-            <div>
-              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 print-text-muted mb-1.5">Recommended Track Picks</div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">${topTracks.map((t, i) => `<div class="bg-slate-800 p-2.5 rounded-lg border border-slate-700 print-light"><div class="text-[10px] font-bold text-indigo-400">PICK #${i + 1} (${t.count}r / ${t.racerCount}p)</div><div class="font-bold text-white print-text-dark leading-snug my-0.5">${t.course}</div><div class="text-emerald-400 font-extrabold">Avg: ${t.avgDisplay}</div></div>`).join('') || '<span class="text-xs text-slate-400 col-span-4">Log races to generate picks.</span>'}</div>
-            </div>
-          </div>`;
-      };
+async function downloadCardPNG() {
+  const btn = document.getElementById('btn-save-png');
+  btn.textContent = 'Rendering...'; btn.disabled = true;
+  try {
+    const canvas = await html2canvas(document.getElementById('print-area'), { backgroundColor: '#1e293b', scale: 2 });
+    const link = document.createElement('a');
+    link.download = `${currentCardTitle}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) { alert('Could not generate image. Try the Print button instead.'); }
+  btn.textContent = 'Save PNG'; btn.disabled = false;
+}
 
-      currentCardTitle = `${squadName.replace(/\s+/g, '_')}_Playbook_${dateStamp.replace(/[\s,]+/g, '_')}`;
-        document.getElementById('print-area').innerHTML = `
-     <div class="border-b border-slate-700 pb-3 flex justify-between items-start print-light">
-       <div>
-         <div class="flex flex-wrap items-center gap-2"><span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Match Lineup & Track Guide (${matchType})</span><span class="text-[11px] px-2 py-0.5 rounded bg-slate-700 text-slate-300 print-light">${dateStamp}</span></div>
-         <h2 class="text-3xl font-extrabold text-white print-text-dark mt-1">${squadName}</h2>
-       </div>
-       <div class="text-right text-xs text-slate-400 print-text-muted"><div>4v4 Format</div><div>6 Races per Game</div></div>
-     </div>
-     <div class="space-y-4">
-       ${buildGameBlock('Game 1', 'text-indigo-400', 'Opening Lineup', gameLineups.g1)}
-       ${buildGameBlock('Game 2', 'text-amber-400', g2SubNote, gameLineups.g2)}
-       ${buildGameBlock('Game 3 (If Tied 1–1)', 'text-emerald-400', g3SubNote, gameLineups.g3)}
-     </div>
-     <p class="text-[11px] text-slate-400 print-text-muted">* Fewer than 3 races logged on track.</p>`;
-    }
-    function closeModal() { document.getElementById('card-modal').classList.add('hidden'); }
+function openRawDataModal() {
+  document.getElementById('raw-data-modal').classList.remove('hidden');
+  renderRawDataTable();
+}
 
-    async function downloadCardPNG() {
-      const btn = document.getElementById('btn-save-png');
-      btn.textContent = 'Rendering...'; btn.disabled = true;
-      try {
-        const canvas = await html2canvas(document.getElementById('print-area'), { backgroundColor: '#1e293b', scale: 2 });
-        const link = document.createElement('a');
-        link.download = `${currentCardTitle}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      } catch (e) { alert('Could not generate image. Try the Print button instead.'); }
-      btn.textContent = 'Save PNG'; btn.disabled = false;
-    }
+function closeRawDataModal() {
+  document.getElementById('raw-data-modal').classList.add('hidden');
+}
+
+function renderRawDataTable() {
+  const tbody = document.getElementById('raw-data-body');
+  const query = (document.getElementById('raw-search').value || '').toLowerCase();
+  const rows = [...allLogs].reverse().filter(r => {
+    const dStr = r[0] ? new Date(r[0]).toISOString().slice(0, 10) : '';
+    return !query || `${dStr} ${r[1]} ${r[2]} ${r[6]} ${r[7]}`.toLowerCase().includes(query);
+  }).slice(0, 80);
+
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const dStr = r[0] ? new Date(r[0]).toISOString().slice(0, 10) : '';
+    const rowNum = r[8];
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-700/30';
+    tr.innerHTML = `
+      <td class="p-2"><input type="date" value="${dStr}" id="raw-d-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white"></td>
+      <td class="p-2"><input type="text" value="${r[1]}" id="raw-p-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-28"></td>
+      <td class="p-2"><input list="course-list" value="${r[2]}" id="raw-c-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-36"></td>
+      <td class="p-2"><input type="number" min="1" max="8" value="${r[3]}" id="raw-pl-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-12"></td>
+      <td class="p-2"><input type="text" value="${r[6] || 'Official'}" id="raw-t-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-20"></td>
+      <td class="p-2"><input type="text" value="${r[7] || getTeamDivision(r[5])}" id="raw-dv-${rowNum}" class="bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-white w-24"></td>
+      <td class="p-2 text-right space-x-1 whitespace-nowrap">
+        <button onclick="saveRawRow(${rowNum}, '${String(r[5] || '').replace(/'/g, "\\'")}')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-white font-bold">Save</button>
+        <button onclick="deleteRawRow(${rowNum})" class="px-2 py-1 bg-rose-600/80 hover:bg-rose-500 rounded text-white font-bold">Del</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function saveRawRow(rowNum, teamName) {
+  const status = document.getElementById('raw-edit-status');
+  status.textContent = 'Saving...'; status.classList.remove('hidden');
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      action: 'editRaceRow', coachPin: verifiedCoachPin, rowNumber: rowNum,
+      date: document.getElementById(`raw-d-${rowNum}`).value,
+      player: document.getElementById(`raw-p-${rowNum}`).value.trim(),
+      course: document.getElementById(`raw-c-${rowNum}`).value.trim(),
+      place: document.getElementById(`raw-pl-${rowNum}`).value,
+      team: teamName,
+      matchType: document.getElementById(`raw-t-${rowNum}`).value.trim(),
+      division: document.getElementById(`raw-dv-${rowNum}`).value.trim()
+    })
+  });
+  await loadStats();
+  renderRawDataTable();
+  status.textContent = `Row #${rowNum} updated!`;
+}
+
+async function deleteRawRow(rowNum) {
+  if (!confirm(`Delete row #${rowNum} permanently from the sheet?`)) return;
+  const status = document.getElementById('raw-edit-status');
+  status.textContent = 'Deleting...'; status.classList.remove('hidden');
+  await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'deleteRaceRow', coachPin: verifiedCoachPin, rowNumber: rowNum })
+  });
+  await loadStats();
+  renderRawDataTable();
+  status.textContent = `Row #${rowNum} deleted.`;
+}
 </script>
 </body>
 </html>
