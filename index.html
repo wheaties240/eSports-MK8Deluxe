@@ -75,10 +75,11 @@
       <label class="block text-sm font-medium text-slate-300 mb-1">1. Select Your Name</label>
       <select id="select-player" onchange="autoSelectSquad()" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500"></select>
 
-      <label class="block text-sm font-medium text-slate-300 mb-1">2. Squad / Sub-Team</label>
-      <input list="squad-list" id="input-student-squad" oninput="updateStudentDivisionBadge()" placeholder="Auto-fills or pick squad..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-1 focus:outline-none focus:border-indigo-500">
+      <label class="block text-sm font-medium text-slate-300 mb-1">2. Team</label>
+      <input list="squad-list" id="input-student-squad" oninput="updateStudentDivisionBadge()" placeholder="Auto-fills or pick team..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-1 focus:outline-none focus:border-indigo-500">
       <datalist id="squad-list"></datalist>
-      <p id="student-division-indicator" class="text-xs text-slate-400 mb-4">Division: Auto-detected from squad</p>
+      <p id="student-division-indicator" class="text-xs text-slate-400 mb-4">Division: Auto-detected from team</p>
+
 
       <label class="block text-sm font-medium text-slate-300 mb-1">3. Course Played</label>
       <input list="course-list" id="input-course" placeholder="Tap to browse or type track name..." class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white mb-4 focus:outline-none focus:border-indigo-500">
