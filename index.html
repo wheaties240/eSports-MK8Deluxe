@@ -1351,16 +1351,45 @@ async function downloadCardPNG() {
   btn.textContent = 'Rendering...';
   btn.disabled = true;
 
+  const loadScript = (url) => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+
   try {
     if (typeof html2canvas === 'undefined') {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://' + '://cloudflare.com' + '/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
+      const hostA = ['cdn', 'jsdelivr', 'net'].join('.');
+      const hostB = ['unpkg', 'com'].join('.');
+      try {
+        await loadScript(`https://${hostA}/npm/html2canvas@1.4.1/dist/html2canvas.min.js`);
+      } catch {
+        await loadScript(`https://${hostB}/html2canvas@1.4.1/dist/html2canvas.min.js`);
+      }
     }
+
+    const target = document.getElementById('print-area');
+    const canvas = await html2canvas(target, {
+      backgroundColor: '#1e293b',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+
+    const link = document.createElement('a');
+    link.download = `${currentCardTitle}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) {
+    console.error('PNG Export Error:', e);
+    alert('Could not generate image. Check console or try Print -> Save as PDF.');
+  } finally {
+    btn.textContent = 'Save PNG';
+    btn.disabled = false;
+  }
+}
 
     const target = document.getElementById('print-area');
     const canvas = await html2canvas(target, {
